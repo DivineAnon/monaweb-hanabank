@@ -1,0 +1,148 @@
+!!! 5
+html(lang='en')
+  head
+    meta(charset='utf-8')
+    title Mona Web . Keb Hana Bank . Channel Transaction Report
+    meta(name='viewport', content='width=device-width, initial-scale=1.0')
+    meta(name='description', content='')
+    meta(name='author', content='')
+    link(href='/monaweb/css/bootstrap.css', rel='stylesheet')
+    script(src='/monaweb/js/Chart.min.js')
+    script(src='/monaweb/js/chartjs-plugin-datalabels.min.js')
+    script(src='/monaweb/js/jquery-3.2.1.min.js')
+    link(href='/monaweb/css/bootstrap-responsive.css', rel='stylesheet')
+    link(rel='apple-touch-icon-precomposed', sizes='144x144', href='/monaweb/ico/apple-touch-icon-144-precomposed.png')
+    link(rel='apple-touch-icon-precomposed', sizes='114x114', href='/monaweb/ico/apple-touch-icon-114-precomposed.png')
+    link(rel='apple-touch-icon-precomposed', sizes='72x72', href='/monaweb/ico/apple-touch-icon-72-precomposed.png')
+    link(rel='apple-touch-icon-precomposed', href='/monaweb/ico/apple-touch-icon-57-precomposed.png')
+    link(rel='shortcut icon', href='/monaweb/ico/favicon.png')
+    
+    script.
+      $(document).ready(function(){   
+
+        function getRandomColor() {
+            var letters = '0123456789ABCDEF'.split('');
+            var color = '#';
+            for (var i = 0; i < 6; i++ ) {
+                color += letters[Math.floor(Math.random() * 16)];
+            }
+            return color;
+        }      
+        var barChart;
+        //--------------------------------------------------------
+        $.ajax({
+          url: '/monaweb/channel_detail_chart?switch=#{qswitch}&cd=#{qcd}',
+          success: function(data){
+            var barData = {
+                label: [],
+                data: []            
+            };
+            var barDataRC = [];
+            i = 0;        
+            //populate RC list array
+            data.rows.forEach( function(item){
+                if(item[2]!='')
+                {
+                  if( barDataRC.indexOf(item[2]) < 0 )
+                  { 
+                      barDataRC.push(item[2]);
+                      barData.data.push([]);
+                  }
+                }
+            });
+            arl = barDataRC.length;
+            data.rows.forEach( function(item){
+                if( barData.label.indexOf(item[0]) < 0 )
+                {
+                    if( i > 0 )
+                    {
+                        barData.data.forEach( function(bdf){
+                            if( bdf.length < i )
+                            {
+                                bdf.push(NaN);
+                            }
+                        });
+                    }                    
+                    barData.label.push(item[0]);                
+                    i++;
+                }
+                barData.data[barDataRC.indexOf(item[2])].push(item[3]);            
+            });
+            
+            var plotDataDatasets = [];
+            i = 0;
+            barData.data.forEach( function(itm){
+                plotDataDatasets.push({
+                    label : barDataRC[i],                    
+                    borderWidth: 1,                
+                    data : barData.data[i],
+                    backgroundColor: getRandomColor(),
+                    borderColor: getRandomColor()
+                });
+                i++;
+            });
+            
+            var plotData = {
+                labels : barData.label,
+                datasets : plotDataDatasets
+            };
+            barChart = new Chart($("#bar"),{
+                type : 'bar',
+                data : plotData,               
+                options: {  
+                    title: {
+                        text: "#{qswitch}:#{qcd}", 
+                        display: true
+                    },
+                    legend: {
+                        display: true,
+                        labels: {
+                            filter: function(a, b){
+                                return a.text != null
+                            }
+                        }
+                    },
+                    scales: {
+                        xAxes: [{
+                            labelString: "Time",
+                            display: true,
+                            ticks: {                               
+                                callback: function(value, index, values) {
+                                    return value + ':00';
+                                }
+                            }
+                        }],
+                        yAxes: [{
+                            ticks: {
+                                beginAtZero:true
+                            }
+                        }]
+                    } 
+                }
+            }); 
+          }
+        });
+      });
+    
+    
+  body
+    .container-fluid      
+      nav.navbar.navbar-expand-lg.navbar-light.bg-light.mt-2        
+        a.navbar-brand Mona Web  
+        button.btn.btn-outline-primary(onclick='window.open("/monaweb/monitoring", "_self")') Monitoring
+        .btn-group.ml-auto.w-100.justify-content-end(role="group",aria-label="Menu Group")
+          a.button.btn.btn-info(type="button",href='/monaweb/merchant') Card Report
+          a.button.btn.btn-info(type="button",href='/monaweb/summary_new') Summary Report
+          a.button.btn.btn-info(type="button",href='/monaweb/channel_new') Channel Report
+          a.button.btn.btn-info(type="button",href='/monaweb/billpayment_new') Bill Payment Report
+          a.button.btn.btn-info(type="button",href='/monaweb/check') Check Transaction
+      hr      
+      .container
+        canvas#bar  
+      
+      hr
+      .footer       
+        .float-right
+            <img src="/monaweb/img/kebhana_logo_new.gif" class="mb-2"/> © 2017
+        
+  include ../partials/scripts

@@ -1,0 +1,172 @@
+!!! 5
+html(lang='en')
+	head
+		meta(charset='utf-8')
+		title Mona Web . Keb Hana Bank
+		meta(name='viewport', content='width=device-width, initial-scale=1.0')
+		meta(name='description', content='')
+		meta(name='author', content='')
+		link(href='/monaweb/css/bootstrap.css', rel='stylesheet')
+		script(src='/monaweb/js/Chart.min.js')
+		script(src='/monaweb/js/jquery-3.2.1.min.js')
+		link(href='/monaweb/css/bootstrap-responsive.css', rel='stylesheet')
+		link(rel='apple-touch-icon-precomposed', sizes='144x144', href='/monaweb/ico/apple-touch-icon-144-precomposed.png')
+		link(rel='apple-touch-icon-precomposed', sizes='114x114', href='/monaweb/ico/apple-touch-icon-114-precomposed.png')
+		link(rel='apple-touch-icon-precomposed', sizes='72x72', href='/monaweb/ico/apple-touch-icon-72-precomposed.png')
+		link(rel='apple-touch-icon-precomposed', href='/monaweb/ico/apple-touch-icon-57-precomposed.png')
+		link(rel='shortcut icon', href='/monaweb/ico/favicon.png')
+		script.
+			$(document).ready(function(){
+				$(".btn-detail").click(function(){
+					window.open("/monaweb/check_detail"+$(this).attr("href"));
+				});
+			});
+	body
+		nav.navbar.navbar-expand-lg.navbar-light.bg-light.mt-2        
+			a.navbar-brand Mona Web        
+				button.btn.btn-outline-primary(onclick='window.open("/monaweb/monitoring", "_self")') Monitoring
+				.btn-group.ml-auto.w-100.justify-content-end(role="group",aria-label="Menu Group")
+					a.button.btn.btn-info(type="button",href='/monaweb/merchant') Card Report
+					a.button.btn.btn-info(type="button",href='/monaweb/summary_new') Summary Report
+					a.button.btn.btn-info(type="button",href='/monaweb/channel_new') Channel Report
+					a.button.btn.btn-info(type="button",href='/monaweb/billpayment_new') Bill Payment Report
+					a.button.btn.btn-info(type="button",href='/monaweb/check') Check Transaction
+		hr
+		.jumbotron			
+			.container
+				center Search Key : 
+					strong #{qsearch} #{qsearch1} #{qsearch2}
+				hr
+				.row
+					.col.font-weight-bold Channels
+					.col.font-weight-bold Transaction Date
+					.col.font-weight-bold Transaction Time
+					.col.font-weight-bold Ref. No
+					.col.font-weight-bold Business Code
+					.col.font-weight-bold Transaction Code
+					.col.font-weight-bold Response Code
+					.col.font-weight-bold
+					</div>
+					- col = data.rows
+					- swtc = ''
+					- trno = ''
+					- rfno = ''
+					- cinout = ''
+					- cdtrx = ''
+					if col == ''
+						.col.border.border-info.font-weight-bold No Result Found
+					else
+						each col1 in col
+							<div class="row">
+							if col1[4] == 'ATMD'
+								.col.border.border-info.font-weight-bold ATM Driving 
+							else if col1[4] == 'GIBI' && col1[5] == 'PBK'
+								.col.border.border-info.font-weight-bold Personal Banking(PBK)
+							else if col1[4] == 'GIBI' && col1[5] == 'MBK'
+								.col.border.border-info.font-weight-bold Mobile Banking(MBK)
+							else if col1[4] == 'GIBI' && col1[5] == 'ODS'
+								.col.border.border-info.font-weight-bold 1Q Pioneer  
+							else if col1[4] == 'GIBI' && col1[5] == 'CBS'
+								.col.border.border-info.font-weight-bold Corporate Banking(CBS)
+							else if col1[4] == 'LOCL'
+								.col.border.border-info.font-weight-bold EDC
+							else if col1[4] == 'ARON'
+								.col.border.border-info.font-weight-bold Visa
+							else if col1[4] == 'VADP'
+								.col.border.border-info.font-weight-bold Phone Banking
+							else if col1[4] == 'SMSD'
+								.col.border.border-info.font-weight-bold SMS Banking
+							else if col1[4] == 'BRSM'
+								.col.border.border-info.font-weight-bold ATM Bersama
+							else if col1[4] == 'RNTS'
+								.col.border.border-info.font-weight-bold Jaringan PRIMA
+							else if col1[4] == 'EURO'
+								.col.border.border-info.font-weight-bold Euronet
+							else if col1[4] == 'FINN'
+								.col.border.border-info.font-weight-bold Finnet
+							else if col1[4] == 'BIIH'
+								.col.border.border-info.font-weight-bold Maybank
+							else if col1[4] == 'TIPH'
+								.col.border.border-info.font-weight-bold Tiphone
+							else if col1[4] == 'SHFX'
+								.col.border.border-info.font-weight-bold SinarmasHF
+							else if col1[4] == 'IONX'
+								.col.border.border-info.font-weight-bold Nicepay
+							else if col1[4] == 'SWDK'
+								.col.border.border-info.font-weight-bold Bimasakti  
+							else
+								.col.border.border-info.font-weight-bold Other
+							.col.border.border-info #{col1[0]}
+							.col.border.border-info #{col1[1]}
+							.col.border.border-info #{col1[3]}
+							.col.border.border-info #{col1[5]}
+							.col.border.border-info #{col1[6]}
+							.col.border.border-info #{col1[8]}
+							.col.border.border-info.p-1.text-center
+								- swtc = col1[4]
+								- trno = col1[2]
+								- rfno = col1[3]
+								- cdtrx = col1[6]
+								if cdtrx == 'DEBTVMC'
+									- cinout = 'EIOVCOM'
+								else if cdtrx == 'DEBTVMS'
+									- cinout = 'EIOVCOM'
+								else if cdtrx == 'DEBTVMT'
+									- cinout = 'EIOVCOM'
+								else if cdtrx == 'GETVCRD'
+									- cinout = 'EIOVCOM'
+								else if cdtrx == 'LOG_VON'
+									- cinout = 'EIOVCOM'
+								else if cdtrx == 'LOGVOFF'
+									- cinout = 'EIOVCOM'
+								else if cdtrx == 'LG2_VON'
+									- cinout = 'EIOVCOM'
+								else if cdtrx == 'LG2VOFF'
+									- cinout = 'EIOVCOM'
+								else if cdtrx == 'DBCSHVF'
+									- cinout = 'EIOVCOM'
+								else if cdtrx == 'DBCSHVS'
+									- cinout = 'EIOVCOM'
+								else if cdtrx == 'DBCSHPN'
+									- cinout = 'EIOVCOM'
+								else if cdtrx == 'DEBITPN'
+									- cinout = 'EIOVCOM'
+								else if cdtrx == 'GETVCCT'
+									- cinout = 'EIOVCOM'
+								else if cdtrx == 'CREDTPN'
+									- cinout = 'EIOVCOM'
+								else if cdtrx == 'GTPNBAL'
+									- cinout = 'EIOVCOM'
+								else if cdtrx == 'GTPMBAL'
+									- cinout = 'EIOVCOM'
+								else if cdtrx == 'CVOIDPN'
+									- cinout = 'EIOVCOM'
+								else if cdtrx == 'ONLINPN'
+									- cinout = 'EIOVCOM'
+								else if cdtrx == 'BOOK_PN'
+									- cinout = 'EIOVCOM'
+								else if cdtrx == 'GTVFBAL'
+									- cinout = 'EIOVCOM'
+								else if cdtrx == 'INCVPIN'
+									- cinout = 'EIOVCOM'
+								else if cdtrx == 'CREDTVF'
+									- cinout = 'EIOVCOM'
+								else if cdtrx == 'CREDTVS'
+									- cinout = 'EIOVCOM'
+								else if cdtrx == 'GETBINQ'
+									- cinout = 'EIOVCOM'
+								else if cdtrx == 'GETBPAY'
+									- cinout = 'EIOVCOM'
+								else if cdtrx == 'REVMSAL'
+									- cinout = 'EIOZCOM'
+								else
+									- cinout = 'EIO_COM'
+								button.btn.btn-secondary.btn-sm.btn-detail(type="button",href="?switch=#{swtc}&trcad=#{trno}&retref=#{rfno}&trxcd=#{cdtrx}&inoutcdc=#{cinout}") Detail
+							</div>
+							
+		hr
+		.footer
+			.float-right
+				<img src="/monaweb/img/kebhana_logo_new.gif" class="mb-2"/> © 2017
+			
+	include ../partials/scripts

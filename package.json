@@ -1,0 +1,30 @@
+{
+  "name": "monaweb",
+  "version": "1.0.0",
+  "description": "Project Monaweb migrate",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "http://10.254.185.109/root/monaweb"
+  },
+  "author": "Rino Alfian - Keb Hana Bank",
+  "license": "ISC",
+  "dependencies": {
+    "body-parser": "^1.19.0",
+    "chart.js": "^2.9.3",
+    "errorhandler": "^1.5.1",
+    "express": "^4.17.1",
+    "jade": "0.30.0",
+    "method-override": "^3.0.0",
+    "morgan": "^1.10.0",
+    "nodemon": "^2.0.4",
+    "oracledb": "^5.0.0",
+    "pm2": "^4.4.0",
+    "pug": "^3.0.0",
+    "serve-favicon": "^2.5.0",
+    "stylus": "^0.54.8"
+  }
+}

@@ -1,0 +1,228 @@
+!!! 5
+html(lang='en')
+  head
+    meta(charset='utf-8')
+    title Mona Web . Keb Hana Bank . Channel Transaction Report
+    meta(name='viewport', content='width=device-width, initial-scale=1.0')
+    meta(name='description', content='')
+    meta(name='author', content='')
+    link(href='/monaweb/css/bootstrap.css', rel='stylesheet')
+    script(src='/monaweb/js/Chart.min.js')
+    script(src='/monaweb/js/jquery-3.2.1.min.js')
+    link(href='/monaweb/css/bootstrap-responsive.css', rel='stylesheet')
+    link(rel='apple-touch-icon-precomposed', sizes='144x144', href='/monaweb/ico/apple-touch-icon-144-precomposed.png')
+    link(rel='apple-touch-icon-precomposed', sizes='114x114', href='/monaweb/ico/apple-touch-icon-114-precomposed.png')
+    link(rel='apple-touch-icon-precomposed', sizes='72x72', href='/monaweb/ico/apple-touch-icon-72-precomposed.png')
+    link(rel='apple-touch-icon-precomposed', href='/monaweb/ico/apple-touch-icon-57-precomposed.png')
+    link(rel='shortcut icon', href='/monaweb/ico/favicon.png')
+    style(type='text/css')
+      nav.navbar{
+        height: 28px;
+      }
+    script.
+    
+      function colorize(opaque, context) {
+         var value = context.dataset.data[context.dataIndex];
+         var x = value.x / 100;
+         var y = value.y / 100;
+         var r = x < 0 && y < 0 ? 250 : x < 0 ? 150 : y < 0 ? 50 : 0;
+         var g = x < 0 && y < 0 ? 0 : x < 0 ? 50 : y < 0 ? 150 : 250;
+         var b = x < 0 && y < 0 ? 0 : x > 0 && y > 0 ? 250 : 150;
+         var a = opaque ? 1 : 0.5;
+         
+         return 'rgba(' + r + ',' + g + ',' + b + ',' + a + ')';
+      }
+      
+      $(document).ready(function(){
+        var updateBubbleChart = function(){                        
+            $.ajax({
+              url: '/monaweb/atmbubble',
+              success: function(data){
+                var bubbleData = {
+                    label: [],
+                    data: []
+                };
+                var bubbleDataset = [];
+                i = 0;
+                var curatmid = '';
+                var xadj, yadj, totl;
+                xadj = 0;
+                yadj = xadj;
+                totl = 0;
+                
+                data.rows.forEach( function(item){
+                    if( item[0] != curatmid )
+                    {
+                        if( i > 0)
+                        {
+                            bubbleData.label.push(curatmid);
+                            
+                            xadjf = Math.floor((xadj/totl)*100)
+                            yadjf = Math.floor((yadj/totl)*100)
+                            
+                            xadjf = xadjf > 100 ? 100 : xadjf
+                            yadjf = yadjf > 100 ? 100 : yadjf
+                            
+                            bubbleData.data.push({
+                                x: xadjf,
+                                y: yadjf,
+                                v: totl                                
+                            });
+                            
+                            xadj = 0;
+                            yadj = xadj;
+                            totl = 0;
+                            
+                        }
+                        curatmid = item[0];                        
+                    }
+                    if( item[1] == 'WDL' && item[2] == '00')
+                    {
+                        xadj += item[3];
+                    }else
+                    if( item[1] == 'WDL' && item[2] != '00')
+                    {
+                        xadj -= item[3];
+                    }else
+                    if( item[1] == 'TRF' && item[2] == '00')
+                    {
+                        yadj += item[3];
+                    }else
+                    if( item[1] == 'TRF' && item[2] != '00')
+                    {
+                        yadj -= item[3];    
+                    }
+                    totl += item[3];
+                    i++;
+                });
+                
+
+                var options = {
+                    title: {
+                        text: 'ATM Plot Trend',
+                        display: true
+                    },
+                    aspectRatio: 1,
+                    legend: false,
+                    scales: {
+                        xAxes: [{
+                           scaleLabel : {
+                            display : true,
+                            labelString : 'Withdrawal'
+                           },
+                           ticks: {
+                                min: -100,
+                                max: 100
+                           }
+                        }],
+                        yAxes: [{
+                           scaleLabel : {
+                            display : true,
+                            labelString : 'Transfer & Overbooking'
+                           },
+                           ticks: {
+                                min: -100,
+                                max: 100
+                           }
+                        }]
+                    },
+                    elements: {
+                        point: {
+                            backgroundColor: colorize.bind(null, false),
+                            borderColor: colorize.bind(null, true),
+                            borderWidth: function(context) {
+                                return Math.min(Math.max(1, context.datasetIndex + 1), 2);
+                            },            
+                            hoverBackgroundColor: 'transparent', 
+                            radius: function(context) {
+                                var value = context.dataset.data[context.dataIndex];
+                                var size = context.chart.width;
+                                var base = Math.abs(value.v) / 100;
+                                return (size / 24) * base;
+                            }
+                        }
+                    }
+                };               
+                
+                i= 0;
+                bubbleData.data.forEach(function(bitem){
+                    bubbleDataset.push({
+                        label : bubbleData.label[i],                           
+                        data : [bubbleData.data[i]]
+                    });
+                    i++;
+                });
+                
+               
+                
+                var plotData = {
+                    labels : 'ATM Data',
+                    datasets : bubbleDataset
+                };                   
+                
+                 console.log(plotData);
+                
+                new Chart($("#bubble"), {
+                    type : 'bubble',
+                    data : plotData,
+                    options: options
+                });
+        
+              },
+              dataType: 'json'
+            });
+        };
+        
+        updateBubbleChart();
+        
+      });  
+        
+        
+      
+  body
+    .container-fluid       
+      .d-flex.justify-content-between.mt-2
+        .container-flex.justify-content-left.p-0.m-0
+          button.btn.btn-outline-primary.btn-sm.h-80.btnmona(type="button",href='/monaweb/') Mona Web
+          button.btn.btn-primary.btn-sm.h-80#clock 12:00:00
+          button.btn.btn-secondary.btn-sm.h-80#toggle-sound Sound : On
+          button.btn.btn-outline-dark.btn-sm.h-80.btnmona(type="button",href='/monaweb/monitoring') Overall
+        .container-sm
+        .container-sm
+          <img src="/monaweb/img/kebhana_logo_new.gif" class="mb-2"/> © 2018
+         
+      
+      .container-fluid
+        .row
+          .col
+            canvas#bubble
+          .col
+            .row
+              .col
+                canvas#barhor
+                div what
+              .col
+                canvas#barhor
+                div what
+            .row
+              .col                
+              .col
+                canvas#barhor
+                div what
+                
+      hr
+      
+      .container-fluid
+        .row.mx-2
+          .col-6
+            .row#billpaymentcont
+          .col-6
+            
+            
+      .hr
+      .progress.fixed-bottom(style='height: auto;')
+        .progress-bar.bg-warning(role='progressbar', style='width: 0%;height: 8px;', aria-valuenow='0', aria-valuemin='0', aria-valuemax='100')
+      
+        
+        
+  include ../partials/scripts

@@ -1,0 +1,122 @@
+!!! 5
+html(lang='en')
+  head
+    meta(charset='utf-8')
+    title Mona Web . Keb Hana Bank
+    meta(name='viewport', content='width=device-width, initial-scale=1.0')
+    meta(name='description', content='')
+    meta(name='author', content='')
+    link(href='/monaweb/css/bootstrap.css', rel='stylesheet')
+    script(src='/monaweb/js/Chart.min.js')
+    script(src='/monaweb/js/jquery-3.2.1.min.js')
+    link(href='/monaweb/css/bootstrap-responsive.css', rel='stylesheet')
+    link(rel='apple-touch-icon-precomposed', sizes='144x144', href='/monaweb/ico/apple-touch-icon-144-precomposed.png')
+    link(rel='apple-touch-icon-precomposed', sizes='114x114', href='/monaweb/ico/apple-touch-icon-114-precomposed.png')
+    link(rel='apple-touch-icon-precomposed', sizes='72x72', href='/monaweb/ico/apple-touch-icon-72-precomposed.png')
+    link(rel='apple-touch-icon-precomposed', href='/monaweb/ico/apple-touch-icon-57-precomposed.png')
+    link(rel='shortcut icon', href='/monaweb/ico/favicon.png')
+    script.
+       $(document).ready(function(){
+            $("#clipboardalert").hide();
+            $(".cpybtn").click(function(){
+                //alert($(this).attr("value"));
+                var $temp = $("<input class='tmpInput' />");                
+                $("body").append($temp);
+                $temp.val($(this).attr("value")).select();                
+                document.execCommand("copy");
+                $(".tmpInput").remove();
+                
+                $("#clipboardalert").show().fadeOut(2000);
+            });
+            
+            $(".btn-detail").click(function(){                
+                window.open("/monaweb/merchant_detail"+$(this).attr("href"));
+            });
+       });
+  body
+    .container-fluid
+      .alert.alert-warning.fade.text-center.fixed-top.show#clipboardalert(role="alert")
+        strong Data Copied to clipboard!        
+        
+      nav.navbar.navbar-expand-lg.navbar-light.bg-light.mt-2        
+        a.navbar-brand Mona Web        
+        button.btn.btn-outline-primary(onclick='window.open("/monaweb/monitoring", "_self")') Monitoring
+        .btn-group.ml-auto.w-100.justify-content-end(role="group",aria-label="Menu Group")
+          a.button.btn.btn-info.active(type="button") Card Report
+          a.button.btn.btn-info(type="button",href='/monaweb/summary_new') Summary Report
+          a.button.btn.btn-info(type="button",href='/monaweb/channel_new') Channel Report
+          a.button.btn.btn-info(type="button",href='/monaweb/billpayment_new') Bill Payment Report
+          a.button.btn.btn-info(type="button",href='/monaweb/check') Check Transaction
+      hr
+      .jumbotron       
+        .container.w-50      
+          .row
+            .col.font-weight-bold Channels
+            .col.font-weight-bold # of Transaction
+            .col.font-weight-bold CAE(%)
+            .col.font-weight-bold SAR(%)
+            .col.font-weight-bold 
+          - van = ''
+          - bsns = ''
+          - datac = 0
+          - datae = 0
+          - datas = 0
+          - var curdate = new Date()
+          - col = data.rows         
+          each col1 in col                  
+            if van != col1[0] || ( van == col1[0] && bsns != col1[1] )
+              if datac > 0
+                .col.border.border-info #{datac}
+                .col.border.border-info #{Math.floor(((datac-datae)/datac)*100)}
+                .col.border.border-info #{Math.floor(((datac-datas)/datac)*100)}
+                .col.border.border-info.p-1.text-center
+                    button.btn.btn-primary.btn-sm.cpybtn(type="button", value="#{datac}, #{Math.floor(((datac-datae)/datac)*100)}, #{Math.floor(((datac-datas)/datac)*100)}") Copy
+                    button.btn.btn-secondary.btn-sm.btn-detail(type="button",href="?switch=#{van}") Detail
+                </div>
+                - datac = 0
+                - datae = 0
+                - datas = 0                
+              <div class="row">
+              - van_name = ''
+              if col1[0] == 'VISA LOCAL'
+                .col.border.border-info.font-weight-bold VISA Local
+              else if col1[0] == 'VISA OVERSEAS'
+                .col.border.border-info.font-weight-bold VISA Overseas
+              else if col1[0] == 'BRSM'
+                .col.border.border-info.font-weight-bold NPG Bersama
+              else if col1[0] == 'RNTS'
+                .col.border.border-info.font-weight-bold NPG Prima
+              
+              - datac += col1[3]
+              if col1[2] != '00'
+                - datae += col1[3]
+                if rccust.indexOf(col1[2]) < 0
+                   - datas += col1[3]                
+              
+            else
+              - datac += col1[3]
+              if col1[2] != '00'
+                - datae += col1[3]
+                if rccust.indexOf(col1[2]) < 0
+                   - datas += col1[3]
+                
+            - van = col1[0]
+            - bsns = col1[1]
+            
+          .col.border.border-info #{datac}
+          .col.border.border-info #{Math.floor(((datac-datae)/datac)*100)}
+          .col.border.border-info #{Math.floor(((datac-datas)/datac)*100)}
+          .col.border.border-info.p-1.text-center
+              button.btn.btn-primary.btn-sm.cpybtn(type="button", value="#{datac}, #{Math.floor(((datac-datae)/datac)*100)}, #{Math.floor(((datac-datas)/datac)*100)}") Copy
+              button.btn.btn-secondary.btn-sm.btn-detail(type="button",href="?switch=#{van}") Detail
+          </div>
+        hr
+        .d-flex.flex-row-reverse
+            .p-2.text-secondary As of : #{curdate.getDate() + "/" + (curdate.getMonth()+1) + "/" + curdate.getFullYear() + " @ " + curdate.getHours() + ":" + curdate.getMinutes() + ":" + curdate.getSeconds()}      
+      
+      hr
+      .footer       
+        .float-right
+            <img src="/monaweb/img/kebhana_logo_new.gif" class="mb-2"/> © 2017
+        
+  include ../partials/scripts

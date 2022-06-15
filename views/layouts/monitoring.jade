@@ -1,0 +1,1425 @@
+!!! 5
+html(lang='en')
+  head
+    meta(charset='utf-8')
+    title Mona Web . Keb Hana Bank . Channel Transaction Report
+    meta(name='viewport', content='width=device-width, initial-scale=1.0')
+    meta(name='description', content='')
+    meta(name='author', content='')
+    link(href='/monaweb/css/bootstrap.css', rel='stylesheet')
+    script(src='/monaweb/js/Chart.min.js')
+    script(src='/monaweb/js/chartjs-plugin-datalabels.min.js')
+    script(src='/monaweb/js/soundjs-0.6.2.min.js')
+    script(src='/monaweb/js/jquery-3.2.1.min.js')
+    link(href='/monaweb/css/bootstrap-responsive.css', rel='stylesheet')
+    link(rel='apple-touch-icon-precomposed', sizes='144x144', href='/monaweb/ico/apple-touch-icon-144-precomposed.png')
+    link(rel='apple-touch-icon-precomposed', sizes='114x114', href='/monaweb/ico/apple-touch-icon-114-precomposed.png')
+    link(rel='apple-touch-icon-precomposed', sizes='72x72', href='/monaweb/ico/apple-touch-icon-72-precomposed.png')
+    link(rel='apple-touch-icon-precomposed', href='/monaweb/ico/apple-touch-icon-57-precomposed.png')
+    link(rel='shortcut icon', href='/monaweb/ico/favicon.png')
+    style(type='text/css')
+      nav.navbar{
+        height: 28px;
+      }
+    script.
+      var soundID = "Thunder";       
+      function loadSound () {        
+        createjs.Sound.registerSound("monaweb/audio/ToneWobble.mp3", soundID);
+      };
+      
+      $(document).ready(function(){
+        
+        var reuterChart;
+        var alertCol = {
+            bar: [],
+            reuter: [],
+            dougnut: []
+        };
+        var mastermute = false;
+        var updateReuterChart = function(){
+            var starttime = "07:45:00";
+            var endtime = "15:00:00";
+            var barDataVal;
+            $.ajax({
+              url: '/monaweb/reuters',
+              success: function(data){
+                var barData = {
+                    label: [],
+                    data: []
+                };
+                i = 0;
+                data.rows.forEach( function(item){
+                     if(i<1){}else{
+                        barData.label.push(item[0]);                        
+                        barDataVal = item[1];
+                        if(isNaN(barDataVal) || barDataVal == undefined || barDataVal <= 0 )
+                        {
+                          barDataVal = 0;
+                        }
+                        barData.data.push(barDataVal);
+                     }
+                     i++;
+                     if(i==11)
+                     {
+                        if( item[0] > starttime && item[0] < endtime )
+                        {
+                            if( barDataVal <= 0 )
+                            {
+                                today = new Date();
+                                if( today.getDay() != 6 && today.getDay() != 0 )
+                                { 
+                                    alertCol.reuter.push('RTRX');
+                                } 
+                            }
+                        }
+                     }
+                });
+                barData.label.pop();
+                barData.data.pop();                
+                
+                var plotData = {
+                    labels : barData.label,
+                    datasets : [
+                        {
+                            label : 'Reuters F/X Feed',
+                            backgroundColor: 'rgba(146, 90, 214, 0.7)',
+                            borderColor: 'rgba(146, 90, 214,1)',
+                            borderWidth: 1,
+                            yAxisID: 'A',
+                            data : barData.data,
+                            datalabels: { align: 'center', anchor: 'center', color: 'white' }
+                        }
+                    ]
+                };                   
+                
+                
+                barChart = new Chart($("#bar7"), {
+                    type : 'line',
+                    data : plotData,
+                    options: {  
+                        title: {
+                            text: 'Reuters F/X Feed',
+                            display: true
+                        },
+                        legend: {
+                             display: false
+                        },
+                        scales: {
+                            yAxes: [{
+                                id: 'A',
+                                type: 'linear',
+                                position: 'left',
+                                ticks: {
+                                    beginAtZero:true                                            
+                                }
+                            }]
+                        }
+                    }
+                });
+        
+              },
+              dataType: 'json'
+            });
+        };
+        
+        
+        //-----------------------------------------------------------------------
+        
+        var billPaymentHTML = "";
+        var updateBillPayment = function(){            
+            $.ajax({
+              url: '/monaweb/billpaymentmon',
+              success: function(data){
+                billPaymentHTML = "";
+                $("#billpaymentcont").empty();
+                i = 0;
+                data.rows.forEach( function(item){                  
+                  if( i == 0 || i == 7 )
+                  {
+                    billPaymentHTML += "<div class=\"col-6\" style=\"font-size:9.5pt\">";
+                    billPaymentHTML += "<div class=\"row\"><div class=\"col-7 font-weight-bold\">Product</div><div class=\"col-2 font-weight-bold justify-content-center\">#</div><div class=\"col-2 font-weight-bold justify-content-center\">Rate</div></div>";
+                  }                 
+                  
+                  if( i < 13 ){
+                    billPaymentHTML += "<div class=\"row\">";    
+                        billPaymentHTML += "<div class=\"col-7 border border-info font-weight-bold\">" + item[0] + "</div>";
+                        billPaymentHTML += "<div class=\"col-2 border border-info font-weight-bold\">" + item[2] + "</div>";
+                        billPaymentHTML += "<div class=\"col-2 border border-info font-weight-bold\">" + Math.round((item[1]/item[2])*100) + "%</div>";
+                    billPaymentHTML += "</div>";
+                  }else
+                  { //donothing 
+                  }  
+                  
+                  if( i == 6 || i == 12 )
+                  {
+                    billPaymentHTML += "</div>";
+                  }
+                  
+                  i++;
+                });
+                $("#billpaymentcont").html(billPaymentHTML); 
+              },
+              dataType: 'json'
+            });               
+        };
+      
+        //-----------------------------------------------------------------------
+        
+        var bigGraphList = ['VISA','GIBI','RNTS','BRSM','ATMD','QRIS'];
+        var barChart;        
+        var updateBarChart = function(){
+            var barData, barDataVal;
+            var uri, titleText, ctxChart;
+            var starttime = "08:30:00";
+            var endtime = "20:00:00";
+            $.each(bigGraphList, function(ind, comp){                                
+                if(comp=="VISA"){
+                    uri = '/monaweb/visaouts';
+                }else
+                if(comp=="GIBI"){
+                    uri = '/monaweb/gibiouts';
+                }else
+                if(comp=="RNTS"){
+                    uri = '/monaweb/rntsouts';
+                }else
+                if(comp=="BRSM"){
+                    uri = '/monaweb/brsmouts';
+                }else
+                if(comp=="ATMD"){
+                    uri = '/monaweb/atmouts';
+                }else
+                if(comp=="QRIS"){
+                    uri = '/monaweb/qrisouts';
+                }
+
+                if( uri != undefined && uri != '' )
+                {
+                    $.ajax({
+                      url: uri,                     
+                      success: function(data){
+                        barData = {
+                            label: [],
+                            data: [],
+                            approve: []
+                        };
+                        i = 0;
+                        data.rows.forEach( function(item){
+                             if(i<1){}else{
+                                barData.label.push(item[0]);
+                                barData.data.push(item[2]);
+                                barDataVal = Math.floor((item[1]/item[2])*100);
+                                if(isNaN(barDataVal) || barDataVal == undefined || barDataVal <= 0 )
+                                {
+                                  barDataVal = 0;
+                                }
+                                barData.approve.push(barDataVal);                                
+                             }
+                             i++;
+                             if(i==11 && (comp=="ATMD" || comp=="RNTS" || comp=="BRSM" || comp=="GIBI"))
+                             {
+                                if( item[0] > starttime && item[0] < endtime )
+                                {
+                                    if( barDataVal <= 0 )
+                                    {
+                                        alertCol.bar.push(comp);
+                                    }
+                                }
+                             }
+                        });
+                        
+                        barData.label.pop();
+                        barData.data.pop();
+                        barData.approve.pop();
+                        
+                        ctxChart = '';
+                        if(comp=="VISA"){                            
+                            ctxChart = $("#bar6");
+                            titleText = 'VISA Transaction';
+                        }else
+                        if(comp=="GIBI"){                            
+                            ctxChart = $("#bar3");
+                            titleText = 'PBK/CBS/MBK';
+                            
+                            // for GIBI pop once more
+                            barData.label.pop();
+                            barData.data.pop();
+                            barData.approve.pop();
+                        }else
+                        if(comp=="RNTS"){                            
+                            ctxChart = $("#bar4");
+                            titleText = 'Jaringan PRIMA';
+                        }else
+                        if(comp=="BRSM"){                            
+                            ctxChart = $("#bar5");
+                            titleText = 'ATM Bersama';
+                        }else
+                        if(comp=="ATMD"){                            
+                            ctxChart = $("#bar2");
+                            titleText = 'KEB Hana ATM';
+                        }else
+                        if(comp=="QRIS"){                            
+                            ctxChart = $("#bar8");
+                            titleText = 'QRIS Payment';
+                        };
+                        
+                        var plotData = {
+                            labels : barData.label,
+                            datasets : [
+                                {
+                                    label : titleText,
+                                    backgroundColor: 'rgba(61, 142, 191, 0.7)',
+                                    borderColor: 'rgba(61, 142, 191,1)',
+                                    borderWidth: 1,
+                                    yAxisID: 'A',
+                                    data : barData.data,
+                                    datalabels: { align: 'center', anchor: 'center', color: 'white' }
+                                },
+                                {
+                                    label : "Approval",
+                                    type : 'line',  
+                                    fill : false,
+                                    pointRadius: 0,
+                                    borderColor: '#FF0000',
+                                    yAxisID: 'B',         
+                                    spanGaps: true,                      
+                                    data : barData.approve,
+                                    datalabels: { display: false }
+                                }
+                            ]
+                        };                   
+                        
+                        
+                        barChart = new Chart(ctxChart, {
+                            type : 'bar',
+                            data : plotData,
+                            options: {  
+                                title: {
+                                    text: titleText,
+                                    display: true
+                                },
+                                legend: {
+                                     display: false
+                                },
+                                scales: {
+                                    yAxes: [{
+                                        id: 'A',
+                                        type: 'linear',
+                                        position: 'left',
+                                        ticks: {
+                                            suggestedMax : 4,
+                                            beginAtZero:true                                            
+                                        }
+                                    },{
+                                        id: 'B',
+                                        type: 'linear',
+                                        position: 'right',
+                                        ticks: {
+                                            beginAtZero:true,                                            
+                                            stepSize: 25
+                                        }
+                                    }]
+                                }
+                            }
+                        });
+                        
+                      },
+                      dataType: 'json'
+                    });
+                }
+            });
+        };        
+        
+        //----------------------------------------------------
+        
+        var allTrxChart;
+        var getAllTrx = function(){
+            var alltrxouts = {
+                 label: [],
+                 data: [],
+                 data2: [],
+                 approve: [],
+                 approve2: []
+            };
+            $.ajax({
+              url: '/monaweb/alltrxlong',
+              success: function(data){            
+                data.rows.forEach( function(item){
+                     calcval = Math.floor((item[2]/item[3])*100);
+                     if( calcval == NaN ) calcval = 0;
+                     
+                     if(item[0]=="OUT"){
+                        alltrxouts.label.push(item[1]);
+                        alltrxouts.data2.push(item[3]);
+                        alltrxouts.approve2.push(calcval);
+                     }else{
+                        alltrxouts.data.push(item[3]);
+                        alltrxouts.approve.push(calcval);
+                     }                 
+                });
+                var alltrxOutsData = {
+                    labels : alltrxouts.label,
+                    datasets : [
+                        {
+                            label : "Incoming Total",
+                            backgroundColor: 'rgba(140, 198, 63, 0.7)',
+                            borderColor: 'rgba(140, 198, 63, 1)',
+                            borderWidth: 1,
+                            yAxisID: 'A',
+                            data : alltrxouts.data,
+                            datalabels: { align: 'center', anchor: 'center', color: 'white' }                            
+                        },
+                        {
+                            label : "Outgoing Total",
+                            backgroundColor: 'rgba(241, 90, 36, 0.7)',
+                            borderColor: 'rgba(241, 90, 36, 1)',
+                            borderWidth: 1,
+                            yAxisID: 'A',
+                            data : alltrxouts.data2,
+                            datalabels: { align: 'center', anchor: 'center', color: 'white' }
+                        },
+                        {
+                            label : "Incoming Approval",
+                            type : 'line',  
+                            fill : false,
+                            pointRadius: 0,
+                            borderColor: 'rgba(57, 82, 25, 0.7)',
+                            yAxisID: 'B',
+                            spanGaps: true,                   
+                            data : alltrxouts.approve,
+                            datalabels: { display: false }
+                        },
+                        {
+                            label : "Outgoing Approval",
+                            type : 'line',  
+                            fill : false,
+                            pointRadius: 0,
+                            borderColor: 'rgba(134, 42, 9, 0.82)',
+                            yAxisID: 'B',    
+                            spanGaps: true,                    
+                            data : alltrxouts.approve2,
+                            datalabels: { display: false }
+                        }
+                    ]
+                };
+                allTrxChart = new Chart($("#bar"), {
+                    type : 'bar',
+                    data : alltrxOutsData,
+                    options: {  
+                        title: {
+                            text: 'All Transactions',
+                            display: true
+                        },
+                        legend: {
+                             display: false
+                        },
+                        scales: {
+                            yAxes: [{
+                                id: 'A',
+                                type: 'linear',
+                                position: 'left',
+                                ticks: {
+                                    beginAtZero:true,
+                                    min: 0,
+                                    suggestedMax: 5
+                                }
+                            },{
+                                id: 'B',
+                                type: 'linear',
+                                position: 'right',
+                                ticks: {
+                                    beginAtZero:true,     
+                                    min: 0,
+                                    max: 100,
+                                    step: 50
+                                }
+                            }]
+                        }
+                    }
+                });
+                
+              },
+              dataType: 'json'
+            })
+        };       
+
+        var addAllTrx = function(){
+            var alltrxouts = {
+                 label: [],
+                 data: [],
+                 data2: [],
+                 approve: [],
+                 approve2: []
+            };
+            $.ajax({
+              url: '/monaweb/alltrx',
+              success: function(data){             
+                data.rows.forEach( function(item){
+                     calcval = Math.floor((item[2]/item[3])*100);
+                     if( calcval == NaN ) calcval = 0;
+                     if(item[0]=="INC"){
+                        alltrxouts.label.push(item[1]);
+                        alltrxouts.data.push(item[3]);
+                        alltrxouts.approve.push(calcval);
+                     }else{
+                        alltrxouts.data2.push(item[3]);
+                        alltrxouts.approve2.push(calcval);
+                     }                     
+                });
+                
+                allTrxChart.data.labels.shift(); 
+                allTrxChart.data.labels.push(alltrxouts.label);
+                
+                var i = 0;
+                allTrxChart.data.datasets.forEach((dataset) => {
+                    dataset.data.shift();             
+                    if( i == 0 )
+                    {
+                        dataset.data.push(alltrxouts.data[0]);                
+                    }else
+                    if( i == 1 )
+                    {
+                        dataset.data.push(alltrxouts.data2[0]);                
+                    }else
+                    if( i == 2 )
+                    {
+                        dataset.data.push(alltrxouts.approve[0]);                
+                    }else
+                    {
+                        dataset.data.push(alltrxouts.approve2[0]);                
+                    }                
+                    i++;                    
+                });            
+                
+                allTrxChart.update();
+              },
+              dataType: 'json'
+            })
+        };    
+        
+        //------------------------ Incoming Traffic -------------------------
+        var donatIncVADP, donatIncSMSD, donatIncRNTS, donatIncLOCL, donatIncGIBI;
+        var donatIncBRSM, donatIncATMD, donatIncARON;
+        
+        var updateDonatIncoming = function(){
+            var donatData = {
+                label: [],
+                data: [],
+                approve: []
+            };
+            $.ajax({
+              url: '/monaweb/incomingstats',
+              success: function(data){            
+                data.rows.forEach( function(item){
+                
+                    donatData = {
+                        label: [],
+                        failed: [],
+                        approve: []
+                    };
+                    
+                    donatData.label.push(item[0]);
+                    donatData.failed.push(Math.round(((item[1]-item[2])/item[1])*100));
+                    donatData.approve.push(Math.round((item[2]/item[1])*100));
+                     
+                    var plotData = {
+                        labels: ['Success', 'Error'],                        
+                        datasets: [{
+                            backgroundColor: ['rgba(57, 187, 115, 0.7)', 'rgba(187, 57, 57, 0.7)'],
+                            data: [ donatData.approve, donatData.failed ],
+                            datalabels: { align: 'center', anchor: 'center', color: '#fffce5',
+                                formatter: function(value, context){
+                                    return value + '%';
+                                }
+                            }
+                        }]
+                    }
+                      
+                     if(item[0]=="ARON"){                        
+                        donatIncARON =  new Chart($("#doughnut1"), {
+                            type : 'doughnut',
+                            data : plotData,
+                            options: {  
+                                title: {
+                                    text: 'VISA',
+                                    display: false,                                    
+                                },
+                                legend: {
+                                     display: false
+                                }
+                            },
+                            plugins: [{
+                                afterDraw: function(chart) {                                
+                                    var width = chart.chart.width,
+                                        height = chart.chart.height,
+                                        ctx = chart.chart.ctx;
+                                    ctx.restore();
+                                    var fontSize = (height / 10).toFixed(2);
+                                    ctx.font = fontSize + "px bold 'Helvetica Neue', 'Helvetica', 'Arial', sans-serif";                                
+                                    var text = chart.options.title.text,
+                                        textX = Math.round((width - ctx.measureText(text).width) / 2),
+                                        textY = height / 2;
+                                    ctx.fillStyle = 'black';
+                                    ctx.fillText(text, textX, textY);
+                                    ctx.save();
+                                    }
+                            }]
+                        });
+                     }else
+                     if(item[0]=="ATMD"){
+                        donatIncATMD =  new Chart($("#doughnut2"), {
+                            type : 'doughnut',
+                            data : plotData,
+                            options: {  
+                                title: {
+                                    text: 'KEB Hana ATM',
+                                    display: false
+                                },
+                                legend: {
+                                     display: false
+                                }
+                            },
+                            plugins: [{
+                                afterDraw: function(chart) {                                
+                                var width = chart.chart.width,
+                                    height = chart.chart.height,
+                                    ctx = chart.chart.ctx;
+                                ctx.restore();
+                                var fontSize = (height / 10).toFixed(2);
+                                ctx.font = fontSize + "px 'Helvetica Neue', 'Helvetica', 'Arial', sans-serif";                                
+                                var text = chart.options.title.text,
+                                    textX = Math.round((width - ctx.measureText(text).width) / 2),
+                                    textY = height / 2;
+                                ctx.fillStyle = 'black';
+                                ctx.fillText(text, textX, textY);
+                                ctx.save();
+                            }
+                            }]
+                        });
+                     }else
+                     if(item[0]=="BRSM"){
+                        donatIncBRSM =  new Chart($("#doughnut3"), {
+                            type : 'doughnut',
+                            data : plotData,
+                            options: {  
+                                title: {
+                                    text: 'ATM Bersama',
+                                    display: false
+                                },
+                                legend: {
+                                     display: false
+                                }
+                            },
+                            plugins: [{
+                                afterDraw: function(chart) {                                
+                                var width = chart.chart.width,
+                                    height = chart.chart.height,
+                                    ctx = chart.chart.ctx;
+                                ctx.restore();
+                                var fontSize = (height / 10).toFixed(2);
+                                ctx.font = fontSize + "px 'Helvetica Neue', 'Helvetica', 'Arial', sans-serif";                                
+                                var text = chart.options.title.text,
+                                    textX = Math.round((width - ctx.measureText(text).width) / 2),
+                                    textY = height / 2;
+                                ctx.fillStyle = 'black';
+                                ctx.fillText(text, textX, textY);
+                                ctx.save();
+                            }
+                            }]
+                        });
+                     }else
+                     if(item[0]=="GIBI"){
+                        donatIncGIBI =  new Chart($("#doughnut4"), {
+                            type : 'doughnut',
+                            data : plotData,
+                            options: {  
+                                title: {
+                                    text: 'PBK/CBS/MBK',
+                                    display: false
+                                },
+                                legend: {
+                                     display: false
+                                }
+                            },
+                            plugins: [{
+                                afterDraw: function(chart) {                                
+                                var width = chart.chart.width,
+                                    height = chart.chart.height,
+                                    ctx = chart.chart.ctx;
+                                ctx.restore();
+                                var fontSize = (height / 10).toFixed(2);
+                                ctx.font = fontSize + "px 'Helvetica Neue', 'Helvetica', 'Arial', sans-serif";                                
+                                var text = chart.options.title.text,
+                                    textX = Math.round((width - ctx.measureText(text).width) / 2),
+                                    textY = height / 2;
+                                ctx.fillStyle = 'black';
+                                ctx.fillText(text, textX, textY);
+                                ctx.save();
+                            }
+                            }]
+                        });
+                     }else
+                     if(item[0]=="LOCL"){
+                        donatIncLOCL =  new Chart($("#doughnut5"), {
+                            type : 'doughnut',
+                            data : plotData,
+                            options: {  
+                                title: {
+                                    text: 'KEB Hana EDC',
+                                    display: false
+                                },
+                                legend: {
+                                     display: false
+                                }
+                            },
+                            plugins: [{
+                                afterDraw: function(chart) {                                
+                                var width = chart.chart.width,
+                                    height = chart.chart.height,
+                                    ctx = chart.chart.ctx;
+                                ctx.restore();
+                                var fontSize = (height / 10).toFixed(2);
+                                ctx.font = fontSize + "px 'Helvetica Neue', 'Helvetica', 'Arial', sans-serif";                                
+                                var text = chart.options.title.text,
+                                    textX = Math.round((width - ctx.measureText(text).width) / 2),
+                                    textY = height / 2;
+                                ctx.fillStyle = 'black';
+                                ctx.fillText(text, textX, textY);
+                                ctx.save();
+                            }
+                            }]
+                        });
+                     }else
+                     if(item[0]=="RNTS"){
+                        donatIncRNTS =  new Chart($("#doughnut6"), {
+                            type : 'doughnut',
+                            data : plotData,
+                            options: {  
+                                title: {
+                                    text: 'Jaringan PRIMA',
+                                    display: false
+                                },
+                                legend: {
+                                     display: false
+                                }
+                            },
+                            plugins: [{
+                                afterDraw: function(chart) {                                
+                                var width = chart.chart.width,
+                                    height = chart.chart.height,
+                                    ctx = chart.chart.ctx;
+                                ctx.restore();
+                                var fontSize = (height / 10).toFixed(2);
+                                ctx.font = fontSize + "px 'Helvetica Neue', 'Helvetica', 'Arial', sans-serif";                                
+                                var text = chart.options.title.text,
+                                    textX = Math.round((width - ctx.measureText(text).width) / 2),
+                                    textY = height / 2;
+                                ctx.fillStyle = 'black';
+                                ctx.fillText(text, textX, textY);
+                                ctx.save();
+                            }
+                            }]
+                        });
+                     }else
+                     if(item[0]=="LNBI"){
+                        donatIncSMSD =  new Chart($("#doughnut13"), {
+                            type : 'doughnut',
+                            data : plotData,
+                            options: {  
+                                title: {
+                                    text: 'LINE Banking',
+                                    display: false,
+                                    color: '#000000'
+                                },
+                                legend: {
+                                     display: false
+                                }
+                            },
+                            plugins: [{
+                                afterDraw: function(chart) {                                
+                                var width = chart.chart.width,
+                                    height = chart.chart.height,
+                                    ctx = chart.chart.ctx;
+                                ctx.restore();
+                                var fontSize = (height / 10).toFixed(2);
+                                ctx.font = fontSize + "px 'Helvetica Neue', 'Helvetica', 'Arial', sans-serif";                                
+                                var text = chart.options.title.text,
+                                    textX = Math.round((width - ctx.measureText(text).width) / 2),
+                                    textY = height / 2;
+                                ctx.fillStyle = 'black';
+                                ctx.fillText(text, textX, textY);
+                                ctx.save();
+                            }
+                            }]
+                        });
+                     }else
+                     if(item[0]=="VADP"){
+                        donatIncVADP =  new Chart($("#doughnut14"), {
+                            type : 'doughnut',
+                            data : plotData,
+                            options: {  
+                                title: {
+                                    text: 'Phone Banking',
+                                    display: false
+                                },
+                                legend: {
+                                     display: false
+                                }
+                            },
+                            plugins: [{
+                                afterDraw: function(chart) {                                
+                                var width = chart.chart.width,
+                                    height = chart.chart.height,
+                                    ctx = chart.chart.ctx;
+                                ctx.restore();
+                                var fontSize = (height / 10).toFixed(2);
+                                ctx.font = fontSize + "px 'Helvetica Neue', 'Helvetica', 'Arial', sans-serif";                                
+                                var text = chart.options.title.text,
+                                    textX = Math.round((width - ctx.measureText(text).width) / 2),
+                                    textY = height / 2;
+                                ctx.fillText(text, textX, textY);
+                                ctx.fillStyle = 'black';
+                                ctx.save();
+                            }
+                            }]
+                        });
+                     }                 
+                })
+              },
+              dataType: 'json'
+            });
+        };
+        
+        //------------------------ Outgoing Traffic -------------------------
+        var donatOutBIIH, donatOutEURO, donatOutFINN, donatOutIONX, donatOutPLND;
+        var donatOutRNTS, donatOutSHFX, donatOutTIPH;
+        var donatOutDIMO, donatOutQRIS;
+        
+        var updateDonatOutgoing = function(){
+            var donatData = {
+                label: [],
+                data: [],
+                approve: []
+            };
+            
+            $.ajax({
+              url: '/monaweb/outgoingstats',
+              success: function(data){            
+                data.rows.forEach( function(item){
+                    var failedData;
+                    donatData = {
+                        label: [],
+                        failed: [],
+                        approve: []
+                    };
+                    
+                    donatData.label.push(item[0]);
+                    failedData = Math.round(((item[1]-item[2])/item[1])*100);
+                    donatData.failed.push(failedData);
+                    donatData.approve.push(Math.round((item[2]/item[1])*100));
+                    
+                    if( failedData >= 50 )
+                    {
+                        alertCol.dougnut.push(item[0]);
+                    }
+                     
+                    var plotData = {
+                        labels: ['Success', 'Error'],                        
+                        datasets: [{
+                            backgroundColor: ['rgba(57, 187, 115, 0.7)', 'rgba(187, 57, 57, 0.7)'],
+                            data: [ donatData.approve, donatData.failed ],
+                            datalabels: { align: 'center', anchor: 'center', color: '#fffce5',
+                                formatter: function(value, context){
+                                    return value + '%';
+                                }
+                            }
+                        }]
+                    }
+                     
+                     if(item[0]=="BIIH"){                        
+                        donatOutBIIH =  new Chart($("#doughnut7"), {
+                            type : 'doughnut',
+                            data : plotData,
+                            options: {  
+                                title: {
+                                    text: 'Maybank',
+                                    display: false,                                    
+                                },
+                                legend: {
+                                     display: false
+                                }
+                            },
+                            plugins: [{
+                                afterDraw: function(chart) {                                
+                                    var width = chart.chart.width,
+                                        height = chart.chart.height,
+                                        ctx = chart.chart.ctx;
+                                    ctx.restore();
+                                    var fontSize = (height / 10).toFixed(2);
+                                    ctx.font = fontSize + "px bold 'Helvetica Neue', 'Helvetica', 'Arial', sans-serif";                                
+                                    var text = chart.options.title.text,
+                                        textX = Math.round((width - ctx.measureText(text).width) / 2),
+                                        textY = height / 2;
+                                    ctx.fillStyle = 'black';
+                                    ctx.fillText(text, textX, textY);
+                                    ctx.save();
+                                    }
+                            }]
+                        });
+                     }else
+                     if(item[0]=="EURO"){
+                        donatOutEURO =  new Chart($("#doughnut8"), {
+                            type : 'doughnut',
+                            data : plotData,
+                            options: {  
+                                title: {
+                                    text: 'Euronet',
+                                    display: false
+                                },
+                                legend: {
+                                     display: false
+                                }
+                            },
+                            plugins: [{
+                                afterDraw: function(chart) {                                
+                                var width = chart.chart.width,
+                                    height = chart.chart.height,
+                                    ctx = chart.chart.ctx;
+                                ctx.restore();
+                                var fontSize = (height / 10).toFixed(2);
+                                ctx.font = fontSize + "px 'Helvetica Neue', 'Helvetica', 'Arial', sans-serif";                                
+                                var text = chart.options.title.text,
+                                    textX = Math.round((width - ctx.measureText(text).width) / 2),
+                                    textY = height / 2;
+                                ctx.fillStyle = 'black';
+                                ctx.fillText(text, textX, textY);
+                                ctx.save();
+                            }
+                            }]
+                        });
+                     }else
+                     if(item[0]=="FINN"){
+                        donatOutFINN =  new Chart($("#doughnut9"), {
+                            type : 'doughnut',
+                            data : plotData,
+                            options: {  
+                                title: {
+                                    text: 'Finnet',
+                                    display: false
+                                },
+                                legend: {
+                                     display: false
+                                }
+                            },
+                            plugins: [{
+                                afterDraw: function(chart) {                                
+                                var width = chart.chart.width,
+                                    height = chart.chart.height,
+                                    ctx = chart.chart.ctx;
+                                ctx.restore();
+                                var fontSize = (height / 10).toFixed(2);
+                                ctx.font = fontSize + "px 'Helvetica Neue', 'Helvetica', 'Arial', sans-serif";                                
+                                var text = chart.options.title.text,
+                                    textX = Math.round((width - ctx.measureText(text).width) / 2),
+                                    textY = height / 2;
+                                ctx.fillStyle = 'black';
+                                ctx.fillText(text, textX, textY);
+                                ctx.save();
+                            }
+                            }]
+                        });
+                     }else
+                     if(item[0]=="SWDK"){
+                        donatOutPLND =  new Chart($("#doughnut10"), {
+                            type : 'doughnut',
+                            data : plotData,
+                            options: {  
+                                title: {
+                                    text: 'Bimasakti',
+                                    display: false
+                                },
+                                legend: {
+                                     display: false
+                                }
+                            },
+                            plugins: [{
+                                afterDraw: function(chart) {                                
+                                var width = chart.chart.width,
+                                    height = chart.chart.height,
+                                    ctx = chart.chart.ctx;
+                                ctx.restore();
+                                var fontSize = (height / 10).toFixed(2);
+                                ctx.font = fontSize + "px 'Helvetica Neue', 'Helvetica', 'Arial', sans-serif";                                
+                                var text = chart.options.title.text,
+                                    textX = Math.round((width - ctx.measureText(text).width) / 2),
+                                    textY = height / 2;
+                                ctx.fillStyle = 'black';
+                                ctx.fillText(text, textX, textY);
+                                ctx.save();
+                            }
+                            }]
+                        });
+                     }else
+                     if(item[0]=="RNTS"){
+                        donatOutRNTS =  new Chart($("#doughnut11"), {
+                            type : 'doughnut',
+                            data : plotData,
+                            options: {  
+                                title: {
+                                    text: 'Jaringan PRIMA',
+                                    display: false
+                                },
+                                legend: {
+                                     display: false
+                                }
+                            },
+                            plugins: [{
+                                afterDraw: function(chart) {                                
+                                var width = chart.chart.width,
+                                    height = chart.chart.height,
+                                    ctx = chart.chart.ctx;
+                                ctx.restore();
+                                var fontSize = (height / 10).toFixed(2);
+                                ctx.font = fontSize + "px 'Helvetica Neue', 'Helvetica', 'Arial', sans-serif";                                
+                                var text = chart.options.title.text,
+                                    textX = Math.round((width - ctx.measureText(text).width) / 2),
+                                    textY = height / 2;
+                                ctx.fillStyle = 'black';
+                                ctx.fillText(text, textX, textY);
+                                ctx.save();
+                            }
+                            }]
+                        });
+                     }else
+                     if(item[0]=="QRIS"){
+                        donatOutQRIS =  new Chart($("#doughnut12"), {
+                            type : 'doughnut',
+                            data : plotData,
+                            options: {
+                                title: {
+                                    text: 'QRIS',
+                                    display: false
+                                },
+                                legend: {
+                                     display: false
+                                }
+                            },
+                            plugins: [{
+                                afterDraw: function(chart) {
+                                var width = chart.chart.width,
+                                    height = chart.chart.height,
+                                    ctx = chart.chart.ctx;
+                                ctx.restore();
+                                var fontSize = (height / 10).toFixed(2);
+                                ctx.font = fontSize + "px 'Helvetica Neue', 'Helvetica', 'Arial', sans-serif";                       
+                                var text = chart.options.title.text,
+                                    textX = Math.round((width - ctx.measureText(text).width) / 2),
+                                    textY = height / 2;
+                                ctx.fillStyle = 'black';
+                                ctx.fillText(text, textX, textY);
+                                ctx.save();
+                            }
+                            }]
+                        });
+                     }else
+                     if(item[0]=="SHFX"){
+                        donatOutSHFX =  new Chart($("#doughnut12"), {
+                            type : 'doughnut',
+                            data : plotData,
+                            options: {  
+                                title: {
+                                    text: 'SHF',
+                                    display: false
+                                },
+                                legend: {
+                                     display: false
+                                }
+                            },
+                            plugins: [{
+                                afterDraw: function(chart) {                                
+                                var width = chart.chart.width,
+                                    height = chart.chart.height,
+                                    ctx = chart.chart.ctx;
+                                ctx.restore();
+                                var fontSize = (height / 10).toFixed(2);
+                                ctx.font = fontSize + "px 'Helvetica Neue', 'Helvetica', 'Arial', sans-serif";                                
+                                var text = chart.options.title.text,
+                                    textX = Math.round((width - ctx.measureText(text).width) / 2),
+                                    textY = height / 2;
+                                ctx.fillStyle = 'black';
+                                ctx.fillText(text, textX, textY);
+                                ctx.save();
+                            }
+                            }]
+                        });
+                     }else
+                     if(item[0]=="TIPH"){
+                        donatOutTIPH =  new Chart($("#doughnut15"), {
+                            type : 'doughnut',
+                            data : plotData,
+                            options: {  
+                                title: {
+                                    text: 'Tiphone',
+                                    display: false,
+                                    color: '#000000'
+                                },
+                                legend: {
+                                     display: false
+                                }
+                            },
+                            plugins: [{
+                                afterDraw: function(chart) {                                
+                                var width = chart.chart.width,
+                                    height = chart.chart.height,
+                                    ctx = chart.chart.ctx;
+                                ctx.restore();
+                                var fontSize = (height / 10).toFixed(2);
+                                ctx.font = fontSize + "px 'Helvetica Neue', 'Helvetica', 'Arial', sans-serif";                                
+                                var text = chart.options.title.text,
+                                    textX = Math.round((width - ctx.measureText(text).width) / 2),
+                                    textY = height / 2;
+                                ctx.fillStyle = 'black';
+                                ctx.fillText(text, textX, textY);
+                                ctx.save();
+                            }
+                            }]
+                        });
+                     }else
+                     if(item[0]=="IONX"){
+                        donatOutIONX =  new Chart($("#doughnut16"), {
+                            type : 'doughnut',
+                            data : plotData,
+                            options: {  
+                                title: {
+                                    text: 'Nicepay VA',
+                                    display: false,
+                                    color: '#000000'
+                                },
+                                legend: {
+                                     display: false
+                                }
+                            },
+                            plugins: [{
+                                afterDraw: function(chart) {                                
+                                var width = chart.chart.width,
+                                    height = chart.chart.height,
+                                    ctx = chart.chart.ctx;
+                                ctx.restore();
+                                var fontSize = (height / 10).toFixed(2);
+                                ctx.font = fontSize + "px 'Helvetica Neue', 'Helvetica', 'Arial', sans-serif";                                
+                                var text = chart.options.title.text,
+                                    textX = Math.round((width - ctx.measureText(text).width) / 2),
+                                    textY = height / 2;
+                                ctx.fillStyle = 'black';
+                                ctx.fillText(text, textX, textY);
+                                ctx.save();
+                            }
+                            }]
+                        });
+                     }               
+                })
+              },
+              dataType: 'json'
+            });
+        };
+        
+        //------------------------------------------------------------------
+        
+        var updateAllChart = function(){
+            updateDonatIncoming();
+            updateDonatOutgoing();
+            updateBarChart();
+            updateBillPayment();
+            updateReuterChart();
+        };
+        
+        var alertSound = false;
+        var checkAlert = function(){            
+            setTimeout(function(){   
+                alertSound = false;            
+                $(".alert").addClass('invisible'); 
+                
+                $.each(alertCol.reuter, function(index, item){ 
+                    if( item == "RTRX" ) 
+                    {
+                        $("#reuter-warn").removeClass("invisible");
+                        alertSound = true;
+                    }
+                });
+                $.each(alertCol.bar, function(index, item){                     
+                    if( item == "ATMD" ) 
+                    {
+                        $("#atmd-warn").removeClass("invisible");
+                        alertSound = true;
+                    }else
+                    if( item == "RNTS" ) 
+                    {
+                        $("#rnts-warn").removeClass('invisible');
+                        alertSound = true;
+                    }else
+                    if( item == "BRSM" ) 
+                    {
+                        $("#brsm-warn").removeClass('invisible');
+                        alertSound = true;
+                    }else
+                    if( item == "GIBI" ) 
+                    {
+                        $("#gibi-warn").removeClass('invisible');
+                        alertSound = true;
+                    }
+                });
+                
+                $.each(alertCol.dougnut, function(index, item){                    
+                    if( item == "BIIH" ) 
+                    {
+                        $("#biih-warn").removeClass('invisible');
+                        alertSound = true;
+                    }else
+                    if( item == "FINN" ) 
+                    {
+                        $("#finnet-warn").removeClass('invisible');
+                        alertSound = true;
+                    }else
+                    if( item == "EURO" ) 
+                    {
+                        $("#euro-warn").removeClass('invisible');
+                        alertSound = true;
+                    }else
+                    if( item == "TIPH" ) 
+                    {
+                        $("#tiphone-warn").removeClass('invisible');
+                        alertSound = true;
+                    }else
+                    if( item == "SHFX" ) 
+                    {
+                        $("#shfx-warn").removeClass('invisible');
+                        alertSound = true;
+                    }else
+                    if( item == "QRIS" )
+                    {
+                        $("#shfx-warn").removeClass('invisible');
+                        alertSound = true;
+                    }
+                    else
+                    if( item == "IONX" ) 
+                    {
+                        $("#nicepay-warn").removeClass('invisible');
+                        alertSound = true;
+                    }
+                });
+            },500);
+        };
+        
+        
+        getAllTrx();
+        updateAllChart();
+        checkAlert();
+        
+        var startAdd = false;
+        setTimeout(function(){
+            startAdd = true;            
+        }, 10000);
+        setInterval(function(){
+            if(startAdd){
+                addAllTrx();
+            }
+        }, 10000);
+        
+        var countBar = 0;
+        var valuer = 0;
+        
+        setInterval(function(){
+        
+           blinker();
+           
+           var dt = new Date();
+           var clock = dt.getHours() + ":" + dt.getMinutes() + ":" + dt.getSeconds();
+           $("#clock").html(clock);
+           
+           countBar += 1000
+           valuer = Math.floor((countBar/300000)*100); //5 Minutes
+           $('.progress-bar').css('width', valuer+'%').attr('aria-valuenow', valuer);
+           
+           if( countBar >= 300000 )
+           {
+                alertCol = {
+                    bar: [],
+                    reuter: [],
+                    dougnut: []
+                };                
+                
+                updateAllChart();                
+                countBar = 0;
+           }
+           
+           checkAlert();
+           
+           if( alertSound && !mastermute )
+           {
+              createjs.Sound.play(soundID); 
+           }
+           
+        }, 1000);
+        
+        $("#toggle-sound").click(function(){
+            if($(this).html() == "Sound : On" )
+            {
+                $(this).html("Sound : Off");
+                mastermute = true;
+            }else{
+                $(this).html("Sound : On");
+                mastermute = false;
+            }
+        });
+        
+      });
+      
+      function blinker()
+      {
+        $(".bar-warning").fadeOut(500);
+        $(".bar-warning").fadeIn(500);
+      };
+      
+  body(onload='loadSound();')
+    .container-fluid       
+      .d-flex.justify-content-between.mt-2
+        .container-flex.justify-content-left.p-0.m-0
+          button.btn.btn-outline-primary.btn-sm.h-80 Mona Web
+          button.btn.btn-primary.btn-sm.h-80#clock 12:00:00
+          button.btn.btn-secondary.btn-sm.h-80#toggle-sound Sound : On
+        .container-sm
+        .container-sm
+          <img src="/monaweb/img/kebhana_logo_new.gif" class="mb-2"/> © 2018
+         
+      
+      .container-fluid
+        .row
+          .col-3 Incoming Traffic (Fullday)
+            .row
+              .col-6.border.border-top-0.border-left-0.border-bottom-0
+                canvas#doughnut1  //Visa              
+              .col-6
+                canvas#doughnut2  //ATMD              
+            .row
+              .col-6.border.border-top-0.border-left-0.border-bottom-0
+                canvas#doughnut3 //BRSM                
+              .col-6
+                canvas#doughnut4 //GIBI               
+            .row
+              .col-6.border.border-top-0.border-left-0.border-bottom-0
+                canvas#doughnut5 //LOCL               
+              .col-6
+                canvas#doughnut6 //RNTS 
+            .row
+              .col-6.border.border-top-0.border-left-0.border-bottom-0
+                canvas#doughnut13 //SMSD               
+              .col-6
+                canvas#doughnut14 //VADP                
+                  
+          .col-6
+            .row
+              canvas#bar(height='50')              
+            .row
+              .col-6                 
+                .alert.alert-warning.bar-warning#atmd-warn(style="position:absolute;animation:blink 1s infinite;") 
+                  h4.alert-heading Warning!
+                  p No Transaction
+                  hr
+                  p.mb-0 Please check (ATMD) Transaction
+                canvas#bar2(height='190') //ATM Driving
+              .col-6
+                .alert.alert-warning.bar-warning#gibi-warn(style="position:absolute") 
+                  h4.alert-heading Warning!
+                  p No Transaction
+                  hr
+                  p.mb-0 Please check (GIBI) Transaction
+                canvas#bar3(height='190') //Internet Banking                
+          .col-3 Outgoing Traffic (Fullday)
+            .row
+              .col-6
+                .alert.alert-warning.bar-warning#biih-warn(style="position:absolute") 
+                  Please check (Maybank) Transaction
+                canvas#doughnut7  //BIIH               
+              .col-6
+                .alert.alert-warning.bar-warning#euro-warn(style="position:absolute") 
+                  Please check (Euronet) Transaction
+                canvas#doughnut8  //Euronet              
+            .row
+              .col-6
+                .alert.alert-warning.bar-warning#finnet-warn(style="position:absolute") 
+                  Please check (Finnet) Transaction
+                canvas#doughnut9  //Finnet             
+              .col-6
+                canvas#doughnut10 //PLND change into SWDK because of new PLN         
+            .row
+              .col-6
+                canvas#doughnut11 //Rintis               
+              .col-6
+                .alert.alert-warning.bar-warning#shfx-warn(style="position:absolute") 
+                  Please check Transaction
+                canvas#doughnut12 //SHFX--nowDIMO--nowQRIS
+            .row
+              .col-6
+                .alert.alert-warning.bar-warning#tiphone-warn(style="position:absolute") 
+                  Please check (Tiphone) Transaction
+                canvas#doughnut15 //Tiphone
+              .col-6
+                .alert.alert-warning.bar-warning#nicepay-warn(style="position:absolute") 
+                  Please check (Nicepay) Transaction
+                canvas#doughnut16 //Nicepay
+      hr
+        
+      .container-fluid
+        .row
+          .col-4
+            .alert.alert-warning.bar-warning#rnts-warn(style="position:absolute") 
+              h4.alert-heading Warning!
+              p No Transaction
+              hr
+              p.mb-0 Please check (RNTS) Transaction
+            canvas#bar4 // Rintis           
+          .col-4
+            .alert.alert-warning.bar-warning#brsm-warn(style="position:absolute") 
+              h4.alert-heading Warning!
+              p No Transaction
+              hr
+              p.mb-0 Please check (BRSM) Transaction
+            canvas#bar5 // Bersama           
+          .col-4
+            .row
+              .alert.alert-warning.bar-warning#qris-warn(style="position:absolute") 
+                h4.alert-heading Warning!
+                p No Transaction
+                hr
+                p.mb-0 Please check (QRIS) Transaction
+              canvas#bar8(height='75')
+            .row
+              .alert.alert-warning.bar-warning#visa-warn(style="position:absolute") 
+                h4.alert-heading Warning!
+                p No Transaction
+                hr
+                p.mb-0 Please check (ARON) Transaction
+              canvas#bar6(height='75') // VISA
+            
+      hr
+      
+      .container-fluid
+        .row.mx-2
+          .col-6
+            .row#billpaymentcont
+          .col-6
+            .row.ml-4 
+              .alert.alert-warning.bar-warning#reuter-warn(style="position:absolute") 
+                h4.alert-heading Warning!
+                p No Transaction
+                hr
+                p.mb-0 Please check (Feeder Box) Transaction
+              canvas#bar7(height='50')              
+            .row.ml-4
+            
+      .hr
+      .progress.fixed-bottom(style='height: auto;')
+        .progress-bar.bg-warning(role='progressbar', style='width: 0%;height: 8px;', aria-valuenow='0', aria-valuemin='0', aria-valuemax='100')
+      
+        
+        
+  include ../partials/scripts

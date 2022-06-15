@@ -1,0 +1,98 @@
+!!! 5
+html(lang='en')
+	head
+		meta(charset='utf-8')
+		title Mona Web . Keb Hana Bank
+		meta(name='viewport', content='width=device-width, initial-scale=1.0')
+		meta(name='description', content='')
+		meta(name='author', content='')
+		link(href='/monaweb/css/bootstrap.css', rel='stylesheet')
+		script(src='/monaweb/js/Chart.min.js')
+		script(src='/monaweb/js/jquery-3.2.1.min.js')
+		link(href='/monaweb/css/bootstrap-responsive.css', rel='stylesheet')
+		link(rel='apple-touch-icon-precomposed', sizes='144x144', href='/monaweb/ico/apple-touch-icon-144-precomposed.png')
+		link(rel='apple-touch-icon-precomposed', sizes='114x114', href='/monaweb/ico/apple-touch-icon-114-precomposed.png')
+		link(rel='apple-touch-icon-precomposed', sizes='72x72', href='/monaweb/ico/apple-touch-icon-72-precomposed.png')
+		link(rel='apple-touch-icon-precomposed', href='/monaweb/ico/apple-touch-icon-57-precomposed.png')
+		link(rel='shortcut icon', href='/monaweb/ico/favicon.png')
+		script.
+			$(document).ready(function(){
+				$('#searching').submit(function() {
+					if ($('#search').val() == '') {
+						alert('Please Input Search Key 1');
+						return false;
+					}
+					else if ($('#channel').val() == '') {
+						alert('Please Select Channel');
+						return false;
+					}
+				});
+			});
+	body
+		nav.navbar.navbar-expand-lg.navbar-light.bg-light.mt-2        
+			a.navbar-brand Mona Web        
+				button.btn.btn-outline-primary(onclick='window.open("/monaweb/monitoring", "_self")') Monitoring
+				.btn-group.ml-auto.w-100.justify-content-end(role="group",aria-label="Menu Group")
+					a.button.btn.btn-info(type="button",href='/monaweb/merchant') Card Report
+					a.button.btn.btn-info(type="button",href='/monaweb/summary_new') Summary Report
+					a.button.btn.btn-info(type="button",href='/monaweb/channel_new') Channel Report
+					a.button.btn.btn-info(type="button",href='/monaweb/billpayment_new') Bill Payment Report
+					button.btn.btn-info.active(type="button") Check Transaction
+		hr
+		.jumbotron
+			.container
+				<div class="rows">
+				form(name='searching', id='searching', method='POST', action='/monaweb/check_result')
+					input(type='text', id='search', name='search', placeholder='Search Key 1')
+					input(type='text', id='search1', name='search1', placeholder='Search Key 2')
+					input(type='text', id='search2', name='search2', placeholder='Search Key 3')
+					- col = data.rows 
+					select(id="channel", name="channel")
+						option(value='') -- Select --
+						each col1 in col
+							if col1[0] == 'ATMD'
+								option(value='#{col1[0]}') ATM Driving
+							else if col1[0] == 'GIBI' && col1[1] == 'PBK'
+								option(value='#{col1[0]}') Personal Banking(PBK)
+							else if col1[0] == 'GIBI' && col1[1] == 'MBK'
+								option(value='#{col1[0]}') Mobile Banking(MBK)
+							else if col1[0] == 'GIBI' && col1[1] == 'ODS'
+								option(value='#{col1[0]}') 1Q Pioneer  
+							else if col1[0] == 'GIBI' && col1[1] == 'CBS'
+								option(value='#{col1[0]}') Corporate Banking(CBS)
+							else if col1[0] == 'LOCL'
+								option(value='#{col1[0]}') EDC
+							else if col1[0] == 'ARON'
+								option(value='#{col1[0]}') Visa
+							else if col1[0] == 'VADP'
+								option(value='#{col1[0]}') Phone Banking
+							else if col1[0] == 'SMSD'
+								option(value='#{col1[0]}') SMS Banking
+							else if col1[0] == 'BRSM'
+								option(value='#{col1[0]}') ATM Bersama
+							else if col1[0] == 'RNTS'
+								option(value='#{col1[0]}') Jaringan PRIMA
+							else if col1[0] == 'EURO'
+								option(value='#{col1[0]}') Euronet
+							else if col1[0] == 'FINN'
+								option(value='#{col1[0]}') Finnet
+							else if col1[0] == 'BIIH'
+								option(value='#{col1[0]}') Maybank
+							else if col1[0] == 'TIPH'
+								option(value='#{col1[0]}') Tiphone
+							else if col1[0] == 'SHFX'
+								option(value='#{col1[0]}') SinarmasHF
+							else if col1[0] == 'IONX'
+								option(value='#{col1[0]}') Nicepay
+							else if col1[0] == 'SWDK'
+								option(value='#{col1[0]}') Bimasakti  
+							else
+								option(value='#{col1[0]}') Other		
+					input.btn.btn-secondary.btn-sm.btn-detail(type='submit', value='Search')
+				</div>  
+		hr
+		.footer
+			.float-right
+				<img src="/monaweb/img/kebhana_logo_new.gif" class="mb-2"/> © 2017
+			
+	include ../partials/scripts

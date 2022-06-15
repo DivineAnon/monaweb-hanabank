@@ -1,0 +1,143 @@
+!!! 5
+html(lang='en')
+  head
+    meta(charset='utf-8')
+    title Mona Web . Keb Hana Bank
+    meta(name='viewport', content='width=device-width, initial-scale=1.0')
+    meta(name='description', content='')
+    meta(name='author', content='')
+    link(href='/monaweb/css/bootstrap.css', rel='stylesheet')
+    script(src='/monaweb/js/Chart.min.js')
+    link(href='/monaweb/css/bootstrap-responsive.css', rel='stylesheet')
+    link(rel='apple-touch-icon-precomposed', sizes='144x144', href='/monaweb/ico/apple-touch-icon-144-precomposed.png')
+    link(rel='apple-touch-icon-precomposed', sizes='114x114', href='/monaweb/ico/apple-touch-icon-114-precomposed.png')
+    link(rel='apple-touch-icon-precomposed', sizes='72x72', href='/monaweb/ico/apple-touch-icon-72-precomposed.png')
+    link(rel='apple-touch-icon-precomposed', href='/monaweb/ico/apple-touch-icon-57-precomposed.png')
+    link(rel='shortcut icon', href='/monaweb/ico/favicon.png')
+  body
+    .container-fluid
+      nav.navbar.navbar-expand-lg.navbar-light.bg-light.mt-2        
+        a.navbar-brand Mona Web        
+        .btn-group.ml-auto.w-100.justify-content-end(role="group",aria-label="Menu Group")
+          button.btn.btn-info.active(type="button") Card Report
+          button.btn.btn-info.active(type="button") Summary Report
+          button.btn.btn-info(type="button") Channel Report
+          button.btn.btn-info(type="button") Bill Payment Report
+          button.btn.btn-info(type="button") Check Transaction
+      hr
+      .jumbotron       
+        .container      
+          .row
+            .col.font-weight-bold Channels/3rd Host
+            .col.font-weight-bold # of Transaction
+            .col.font-weight-bold Approval Rate
+            .col.font-weight-bold Error RC
+          - van = ''
+          - bsns = ''
+          - datac = 0
+          - datae = 0
+          - resp_col = ''
+          - counter_resp = 0
+          - var curdate = new Date()
+          - col = data.rows         
+          each col1 in col                  
+            if van != col1[0] || ( van == col1[0] && bsns != col1[1] )
+              if datac > 0
+                .col.border.border-info #{datac}
+                .col.border.border-info #{Math.floor(((datac-datae)/datac)*100)}%
+                .col.border.border-info #{resp_col}
+                </div>
+                - datac = 0
+                - datae = 0
+                - resp_col = ''
+                - counter_resp = 0
+              <div class="row">
+              - van_name = ''
+              if col1[0] == 'ATMD'
+                .col.border.border-info.font-weight-bold ATM Driving 
+              else if col1[0] == 'GIBI' && col1[1] == 'PBK'
+                .col.border.border-info.font-weight-bold IB Personal Banking
+              else if col1[0] == 'GIBI' && col1[1] == 'MBK'
+                .col.border.border-info.font-weight-bold IB Mobile Banking
+              else if col1[0] == 'GIBI' && col1[1] == 'ODS'
+                .col.border.border-info.font-weight-bold 1Q Pioneer  
+              else if col1[0] == 'GIBI' && col1[1] == 'CBS'
+                .col.border.border-info.font-weight-bold Corporate Banking
+              else if col1[0] == 'LOCL'
+                .col.border.border-info.font-weight-bold EDC
+              else if col1[0] == 'ARON'
+                .col.border.border-info.font-weight-bold Visa
+              else if col1[0] == 'VADP'
+                .col.border.border-info.font-weight-bold Phone Banking
+              else if col1[0] == 'SMSD'
+                .col.border.border-info.font-weight-bold SMS Banking
+              else if col1[0] == 'BRSM'
+                .col.border.border-info.font-weight-bold ATM Bersama
+              else if col1[0] == 'RNTS'
+                .col.border.border-info.font-weight-bold Jaringan PRIMA
+              else if col1[0] == 'EURO'
+                .col.border.border-info.font-weight-bold Euronet
+              else if col1[0] == 'FINN'
+                .col.border.border-info.font-weight-bold Finnet
+              else if col1[0] == 'BIIH'
+                .col.border.border-info.font-weight-bold Maybank Aggr.
+              else if col1[0] == 'TIPH'
+                .col.border.border-info.font-weight-bold Tiphone
+              else if col1[0] == 'SHFX'
+                .col.border.border-info.font-weight-bold Sinarmas Hana Finance
+              else if col1[0] == 'IONX'
+                .col.border.border-info.font-weight-bold Nicepay
+              else if col1[0] == 'PLND'
+                .col.border.border-info.font-weight-bold PLND  
+              else
+                .col.border.border-info.font-weight-bold Other
+                
+              if col1[2] == 'I'
+                - datac += col1[4]
+              else if col1[2] == 'A'
+                - datac += col1[4]
+                if col1[3] != '00'
+                    - datae += col1[4] 
+                    if counter_resp < 5
+                      - resp_col += col1[3] + ','  
+                      - counter_resp++
+              else 
+                if col1[3] != '00'
+                    - datae += col1[4] 
+                    if counter_resp < 5
+                      - resp_col += col1[3] + ','  
+                      - counter_resp++
+            else
+              if col1[2] == 'I'
+                - datac += col1[4]
+              else if col1[2] == 'A'
+                - datac += col1[4]
+                if col1[3] != '00'
+                    - datae += col1[4] 
+                    if counter_resp < 5
+                      - resp_col += col1[3] + ','  
+                      - counter_resp++
+              else 
+                 if col1[3] != '00'
+                    - datae += col1[4]    
+                    if counter_resp < 5
+                      - resp_col += col1[3] + ','  
+                      - counter_resp++
+                
+            - van = col1[0]
+            - bsns = col1[1]
+            
+          .col.border.border-info #{datac}
+          .col.border.border-info #{Math.floor(((datac-datae)/datac)*100)}%
+          .col.border.border-info #{resp_col}
+          </div>
+        hr
+        .d-flex.flex-row-reverse
+            .p-2.text-secondary As of : #{curdate.getDate() + "/" + (curdate.getMonth()+1) + "/" + curdate.getFullYear() + " @ " + curdate.getHours() + ":" + curdate.getMinutes() + ":" + curdate.getSeconds()}      
+      
+      hr
+      .footer       
+        .float-right
+            <img src="/monaweb/img/kebhana_logo_new.gif" class="mb-2"/> © 2017
+        
+  include ../partials/scripts

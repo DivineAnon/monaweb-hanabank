@@ -1,0 +1,216 @@
+!!! 5
+html(lang='en')
+  head
+    meta(charset='utf-8')
+    title Mona Web . Keb Hana Bank . Channel Transaction Report
+    meta(name='viewport', content='width=device-width, initial-scale=1.0')
+    meta(name='description', content='')
+    meta(name='author', content='')
+    link(href='/monaweb/css/bootstrap.css', rel='stylesheet')
+    script(src='/monaweb/js/Chart.min.js')
+    script(src='/monaweb/js/jquery-3.2.1.min.js')
+    link(href='/monaweb/css/bootstrap-responsive.css', rel='stylesheet')
+    link(rel='apple-touch-icon-precomposed', sizes='144x144', href='/monaweb/ico/apple-touch-icon-144-precomposed.png')
+    link(rel='apple-touch-icon-precomposed', sizes='114x114', href='/monaweb/ico/apple-touch-icon-114-precomposed.png')
+    link(rel='apple-touch-icon-precomposed', sizes='72x72', href='/monaweb/ico/apple-touch-icon-72-precomposed.png')
+    link(rel='apple-touch-icon-precomposed', href='/monaweb/ico/apple-touch-icon-57-precomposed.png')
+    link(rel='shortcut icon', href='/monaweb/ico/favicon.png')
+    script.
+       $(document).ready(function(){
+            $("#clipboardalert").hide();
+            $(".cpybtn").click(function(){
+                //alert($(this).attr("value"));
+                var $temp = $("<input class='tmpInput' />");                
+                $("body").append($temp);
+                $temp.val($(this).attr("value")).select();                
+                document.execCommand("copy");
+                $(".tmpInput").remove();
+                
+                $("#clipboardalert").show().fadeOut(2000);
+            });
+            
+            $(".btn-detail").click(function(){                
+                window.open("/monaweb/channel_detail"+$(this).attr("href"));
+            });
+       });
+  body
+    .container-fluid
+      .alert.alert-warning.fade.text-center.fixed-top.show#clipboardalert(role="alert")
+        strong Data Copied to clipboard!
+        
+      nav.navbar.navbar-expand-lg.navbar-light.bg-light.mt-2        
+        a.navbar-brand Mona Web  
+        button.btn.btn-outline-primary(onclick='window.open("/monaweb/monitoring", "_self")') Monitoring
+        .btn-group.ml-auto.w-100.justify-content-end(role="group",aria-label="Menu Group")
+          a.button.btn.btn-info(type="button",href='/monaweb/merchant') Card Report
+          a.button.btn.btn-info(type="button",href='/monaweb/summary_new') Summary Report
+          button.btn.btn-info.active(type="button") Channel Report
+          a.button.btn.btn-info(type="button",href='/monaweb/billpayment_new') Bill Payment Report
+          a.button.btn.btn-info(type="button",href='/monaweb/check') Check Transaction
+      hr
+      .container.w-70
+          - van = ''
+          - trxcd = ''
+          - bsns = ''
+          - datac = 0
+          - datae = 0
+          - datas = 0
+          - resp_col = ''
+          - counter_resp = 0
+          - var curdate = new Date()
+          - col = data.rows 
+          - first = true            
+          each col1 in col                  
+            if van != col1[0]
+              if !first
+                if datac > 0
+                  <div class="row ml-1">
+                  if van == 'GIBI'
+                    .col.border.border-info.font-weight-bold #{bsns}
+                  .col.border.border-info.font-weight-bold #{trxcd}
+                  .col.border.border-info #{datac}
+                  .col.border.border-info #{Math.floor(((datac-datae)/datac)*100)}
+                  .col.border.border-info #{Math.floor(((datac-datas)/datac)*100)}
+                  .col.border.border-info.p-1.text-center
+                    button.btn.btn-primary.btn-sm.cpybtn(type="button", value="#{datac}, #{Math.floor(((datac-datae)/datac)*100)}, #{Math.floor(((datac-datas)/datac)*100)}") Copy
+                    button.btn.btn-secondary.btn-sm.btn-detail(type="button",href="?switch=#{van}&cd=#{trxcd}") Detail
+                  </div>              
+                  - datac = 0
+                  - datae = 0
+                  - datas = 0
+                  - resp_col = ''
+                  - counter_resp = 0
+                else
+                  if !first
+                    <div class="row ml-1">
+                    if van == 'GIBI'
+                      .col.border.border-info.font-weight-bold #{bsns}
+                    .col.border.border-info.font-weight-bold #{trxcd}
+                    .col.border.border-info #{datac}
+                    .col.border.border-info -
+                    .col.border.border-info -
+                    .col.border.border-info.p-1 -
+                    </div>               
+                    - datac = 0
+                    - datae = 0
+                    - datas = 0
+                    - resp_col = ''
+                    - counter_resp = 0 
+                    
+                .d-flex.flex-row-reverse
+                  .p-2.text-secondary As of : #{curdate.getDate() + "/" + (curdate.getMonth()+1) + "/" + curdate.getFullYear() + " @ " + curdate.getHours() + ":" + curdate.getMinutes() + ":" + curdate.getSeconds()}                
+                </div>
+              <div class="jumbotron">
+              h1.display-4 #{col1[0]}
+              if col1[0] == 'ATMD'
+                p.lead ATM Driving
+              else if col1[0] == 'GIBI'
+                p.lead Internet Banking Personal(PBK), Mobile Banking(MBK), Corporate Banking(CBS), 1Q Pioneer(ODS)
+              else if col1[0] == 'SMSD'
+                p.lead SMS Banking
+              else if col1[0] == 'VADP'
+                p.lead Phone Banking
+              hr.my-4
+              .row.ml-1.mb-1
+                if col1[0] == 'GIBI'
+                    .col.font-weight-bold Channel
+                .col.font-weight-bold Transaction Code
+                .col.font-weight-bold # of Transaction
+                .col.font-weight-bold CAE(%)
+                .col.font-weight-bold SAR(%)
+                .col.font-weight-bold 
+            else
+              if trxcd != col1[2]
+                if datac > 0
+                  <div class="row ml-1">
+                  if van == 'GIBI'
+                    .col.border.border-info.font-weight-bold #{bsns}
+                  .col.border.border-info.font-weight-bold #{trxcd}
+                  .col.border.border-info #{datac}
+                  .col.border.border-info #{Math.floor(((datac-datae)/datac)*100)}
+                  .col.border.border-info #{Math.floor(((datac-datas)/datac)*100)}
+                  .col.border.border-info.p-1.text-center
+                    button.btn.btn-primary.btn-sm.cpybtn(type="button", value="#{datac}, #{Math.floor(((datac-datae)/datac)*100)}, #{Math.floor(((datac-datas)/datac)*100)}") Copy
+                    button.btn.btn-secondary.btn-sm.btn-detail(type="button",href="?switch=#{van}&cd=#{trxcd}") Detail
+                  </div>              
+                  - datac = 0
+                  - datae = 0
+                  - datas = 0
+                  - resp_col = ''
+                  - counter_resp = 0
+                else
+                  if !first
+                    <div class="row ml-1">
+                    if van == 'GIBI'
+                      .col.border.border-info.font-weight-bold #{bsns}
+                    .col.border.border-info.font-weight-bold #{trxcd}
+                    .col.border.border-info #{datac}
+                    .col.border.border-info -
+                    .col.border.border-info -
+                    .col.border.border-info.p-1 -
+                    </div>               
+                    - datac = 0
+                    - datae = 0
+                    - datas = 0
+                    - resp_col = ''
+                    - counter_resp = 0            
+                
+            - datac += col1[4]
+            if col1[3] != '00'
+              - datae += col1[4] 
+              if rccust.indexOf(col1[3]) < 0
+                - datas += col1[4]
+              if counter_resp < 5
+                - resp_col += col1[3] + ','
+                - counter_resp++  
+                
+                
+            - trxcd = col1[2]
+            - van = col1[0]
+            - bsns = col1[1]
+            - first = false
+          
+          if datac > 0
+            <div class="row ml-1">
+            if van == 'GIBI'
+              .col.border.border-info.font-weight-bold #{bsns}
+            .col.border.border-info.font-weight-bold #{trxcd}
+            .col.border.border-info #{datac}
+            .col.border.border-info #{Math.floor(((datac-datae)/datac)*100)}
+            .col.border.border-info #{Math.floor(((datac-datas)/datac)*100)}
+            .col.border.border-info.p-1.text-center
+                button.btn.btn-primary.btn-sm.cpybtn(type="button", value="#{datac}, #{Math.floor(((datac-datae)/datac)*100)}, #{Math.floor(((datac-datas)/datac)*100)}") Copy
+                button.btn.btn-secondary.btn-sm.btn-detail(type="button",href="?switch=#{van}&cd=#{trxcd}") Detail
+            </div>              
+            - datac = 0
+            - datae = 0
+            - datas = 0
+            - resp_col = ''
+            - counter_resp = 0
+          else
+            if !first
+              <div class="row ml-1">
+              if van == 'GIBI'
+                .col.border.border-info.font-weight-bold #{bsns}
+              .col.border.border-info.font-weight-bold #{trxcd}
+              .col.border.border-info #{datac}
+              .col.border.border-info -
+              .col.border.border-info -
+              .col.border.border-info.p-1 -
+              </div>               
+              - datac = 0
+              - datae = 0
+              - datas = 0
+              - resp_col = ''
+              - counter_resp = 0       
+              
+          .d-flex.flex-row-reverse
+            .p-2.text-secondary As of : #{curdate.getDate() + "/" + (curdate.getMonth()+1) + "/" + curdate.getFullYear() + " @ " + curdate.getHours() + ":" + curdate.getMinutes() + ":" + curdate.getSeconds()}      
+          </div> 
+      
+      hr
+      .footer       
+        .float-right
+            <img src="/monaweb/img/kebhana_logo_new.gif" class="mb-2"/> © 2017
+        
+  include ../partials/scripts

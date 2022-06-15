@@ -1,0 +1,382 @@
+!!! 5
+html(lang='en')
+  head
+    meta(http-equiv='content-type', content='text/html; charset=UTF-8')
+    title Indonesia - Highmaps
+    meta(name='viewport', content='width=device-width, initial-scale=1.0')
+    meta(name='description', content='')
+    meta(name='author', content='')
+    link(href='/monaweb/css/bootstrap.css', rel='stylesheet')
+    link(href='/monaweb/css/bootstrap-responsive.css', rel='stylesheet')
+    link(rel='apple-touch-icon-precomposed', sizes='144x144', href='/monaweb/ico/apple-touch-icon-144-precomposed.png')
+    link(rel='apple-touch-icon-precomposed', sizes='114x114', href='/monaweb/ico/apple-touch-icon-114-precomposed.png')
+    link(rel='apple-touch-icon-precomposed', sizes='72x72', href='/monaweb/ico/apple-touch-icon-72-precomposed.png')
+    link(rel='apple-touch-icon-precomposed', href='/monaweb/ico/apple-touch-icon-57-precomposed.png')
+    link(rel='shortcut icon', href='/monaweb/ico/favicon.png')
+    style(type='text/css').
+      nav.navbar{
+          height: 28px;
+      } 
+      /* EOS */
+    script#insert.
+    script(src='/monaweb/js/Chart.min.js')
+    script(src='/monaweb/js/chartjs-plugin-datalabels.min.js')
+    script(src='/monaweb/js/soundjs-0.6.2.min.js')
+    script(src='/monaweb/js/jquery-3.2.1.min.js')
+    script(src='https://code.highcharts.com/maps/highmaps.js')
+    script(src='https://code.highcharts.com/maps/modules/exporting.js')
+    script(src='https://code.highcharts.com/mapdata/countries/id/id-all.js')
+    script(src="https://code.highcharts.com/maps/modules/data.js")
+    script(type='text/javascript').
+      $(document).ready(function(){
+          
+          //-----------------------------------------------------------------------
+          
+          var ONONFFHTML = "";
+          var updateOnOff = function(){          
+              $.ajax({
+                url: '/monaweb/byonoff',
+                success: function(data){
+                  ONONFFHTML = "";
+                  $("#onoff").empty();
+                  i = 0;
+                  data.rows.forEach( function(item){                  
+                      //- ONONFFHTML += "MCC";
+                    if( i == 0 )
+                    {
+                      ONONFFHTML += "<div class=\"col-4 font-weight-bold\">NAME</div><div class=\"col-2 font-weight-bold justify-content-center\">CODE</div><div class=\"col-3 font-weight-bold justify-content-center\">COUNT</div>";
+                    }                 
+                    
+                    if( i < 11 ){   
+                          ONONFFHTML += "<div class=\"col-4 border border-info\">" + item[0] + "</div>";
+                          ONONFFHTML += "<div class=\"col-2 border border-info\">" + item[1] + "</div>";
+                          ONONFFHTML += "<div class=\"col-3 border border-info\">" + item[2] + " </div>";
+                    }else
+                    { //donothing 
+                    }  
+                    
+                    if( i == 2 )
+                    {
+                      ONONFFHTML += "</div>";
+                    }
+                    
+                    i++;
+                  });
+                  $("#onoff").html(ONONFFHTML); 
+                },
+                dataType: 'json'
+              });               
+          };
+        updateOnOff()
+          //-----------------------------------------------------------------------
+
+          //-----------------------------------------------------------------------
+          
+          var MERCHANTHTML = "";
+          var updateMerchant = function(){          
+              $.ajax({
+                url: '/monaweb/bymerchant',
+                success: function(data){
+                  MERCHANTHTML = "";
+                  $("#merchant").empty();
+                  i = 0;
+                  data.rows.forEach( function(item){                  
+                      //- MERCHANTHTML += "MCC";
+                    if( i == 0 )
+                    {
+                       MERCHANTHTML += "<div class=\"col-4 font-weight-bold justify-content-center\">NAME</div><div class=\"col-3 font-weight-bold justify-content-center\">LOCATION</div><div class=\"col-2 font-weight-bold justify-content-center\">COUNT</div><div class=\"col-3 font-weight-bold justify-content-center\">TOTAL</div>";
+                    }                 
+                    
+                    if( i < 11 ){  
+                          MERCHANTHTML += "<div class=\"col-4 border border-info text\">" + item[0] + "</div>";
+                          MERCHANTHTML += "<div class=\"col-3 border border-info text\">" + item[1] + "</div>";
+                          MERCHANTHTML += "<div class=\"col-2 border border-info text\">" + item[2] + " </div>";
+                          MERCHANTHTML += "<div class=\"col-3 border border-info text\">" + item[3] + " </div>";
+                    }else
+                    { //donothing 
+                    }  
+                    
+                    if( i == 10 )
+                    {
+                      MERCHANTHTML += "</div>";
+                    }
+                    
+                    i++;
+                  });
+                  $("#merchant").html(MERCHANTHTML); 
+                },
+                dataType: 'json'
+              });               
+          };
+        updateMerchant()
+          //-----------------------------------------------------------------------
+
+          //-----------------------------------------------------------------------
+          
+          var MCCHTML = "";
+          var updateMCC = function(){          
+              $.ajax({
+                url: '/monaweb/bymcc',
+                success: function(data){
+                  MCCHTML = "";
+                  $("#mcc").empty();
+                  i = 0;
+                  data.rows.forEach( function(item){                  
+                      //- MCCHTML += "MCC";
+                    if( i == 0 )
+                    {
+                      MCCHTML += "<div class=\"col-2 font-weight-bold justify-content-center\">MCC</div><div class=\"col-5 font-weight-bold justify-content-center\">MERCHANT TYPE</div><div class=\"col-2 font-weight-bold justify-content-center\">COUNT</div><div class=\"col-3 font-weight-bold justify-content-center\">TOTAL</div>";
+                    }                 
+                    
+                    if( i < 11 ){   
+                          MCCHTML += "<div class=\"col-2 border border-info font-size-11\">" + item[0] + "</div>";
+                          MCCHTML += "<div class=\"col-5 border border-info font-size-11\">" + item[1] + "</div>";
+                          MCCHTML += "<div class=\"col-2 border border-info font-size-11\">" + item[2] + " </div>";
+                          MCCHTML += "<div class=\"col-3 border border-info font-size-11\">" + item[3] + " </div>";
+                    }else
+                    { //donothing 
+                    }  
+                    
+                    if( i == 2 )
+                    {
+                      MCCHTML += "</div>";
+                    }
+                    
+                    i++;
+                  });
+                  $("#mcc").html(MCCHTML); 
+                },
+                dataType: 'json'
+              });               
+          };
+        updateMCC()
+          //-----------------------------------------------------------------------
+        var chart = null;
+        Highcharts.getJSON('/monaweb/mapsouts', function (data) {
+
+          // Make codes uppercase to match the map data
+          data.forEach(function (p) {
+            // p.code = p.code.toUpperCase();
+          });
+
+          // Instantiate the map
+          chart = Highcharts.mapChart('container', {
+
+              chart: {
+                  map: 'countries/id/id-all',
+                  borderWidth: 1
+              },
+
+              title: {
+                  text: 'Debit Merchant Transactions'
+              },
+
+              exporting: {
+                  sourceWidth: 600,
+                  sourceHeight: 500
+              },
+
+              legend: {
+                  layout: 'horizontal',
+                  borderWidth: 0,
+                  backgroundColor: 'rgba(255,255,255,0.85)',
+                  floating: true,
+                  verticalAlign: 'top',
+                  y: 25
+              },
+
+              mapNavigation: {
+                  enabled: true
+              },
+
+              /*colorAxis: {
+                  min: 1,
+                  type: 'logarithmic',
+                  minColor: '#EEEEFF',
+                  maxColor: '#000022',
+                  stops: [
+                      [0, '#EFEFFF'],
+                      [0.67, '#4444FF'],
+                      [1, '#000022']
+                  ]
+              },*/
+
+              colorAxis: {
+                min: 0
+              },
+
+              series: [{
+                  animation: {
+                      duration: 1000
+                  },
+                  data: data,
+                  joinBy: ['hc-key', 'name'],
+                  dataLabels: {
+                      enabled: true,
+                      //color: '#FFFFFF',
+                      format: '{point.name}'
+                  },
+                  states: {
+                      hover: {
+                          color: '#BADA55'
+                      }
+                  },
+                  name: 'Detail Transaksi',
+                  tooltip: {
+                      pointFormat: `
+                                    {point.name}<br>
+                                    Total Transaksi : {point.value}<br>
+                                    Total Amount    : {point.trx_amt_total}<br>
+                                    Total Avg Amount: {point.trx_amt_avg}
+                      `
+                  }
+              }]
+          });
+
+        });
+
+        setInterval(function(){
+           var dt = new Date();
+           var clock = dt.getHours() + ":" + dt.getMinutes() + ":" + dt.getSeconds();
+           $("#clock").html(clock);
+           
+        }, 1000);
+
+        $("#toggle-sound").click(function(){
+            if($(this).html() == "Sound : On" )
+            {
+                $(this).html("Sound : Off");
+                mastermute = true;
+            }else{
+                $(this).html("Sound : On");
+                mastermute = false;
+            }
+        });
+      })
+
+      
+
+      
+  body 
+    .container-fluid       
+        .d-flex.justify-content-between.mt-2
+          .container-flex.justify-content-left.p-0.m-0
+            button.btn.btn-outline-primary.btn-sm.h-80 Mona Web
+            button.btn.btn-primary.btn-sm.h-80#clock 12:00:00
+            button.btn.btn-secondary.btn-sm.h-80#toggle-sound Sound : On
+          .container-sm
+          .container-sm
+            <img src="/monaweb/img/kebhana_logo_new.gif" class="mb-2"/> © 2018
+         
+        .container-fluid
+          .row
+            .col-3
+              .row#onoff(style='margin:auto;width: 100%;font-size:small;')             
+              //-   .col-6
+                  //- canvas#doughnut2  //DKCP              
+              //- .row
+              //-   .col-6.border.border-top-0.border-left-0.border-bottom-0
+                  //- canvas#doughnut3 //BRSM                
+              //-   .col-6
+                  //- canvas#doughnut4 //GIBI               
+              //- .row
+              //-   .col-6.border.border-top-0.border-left-0.border-bottom-0
+              //-     canvas#doughnut5 //LOCL               
+              //-   .col-6
+              //-     canvas#doughnut6 //RNTS 
+              //- .row
+              //-   .col-6.border.border-top-0.border-left-0.border-bottom-0
+              //-     canvas#doughnut13 //SMSD               
+              //-   .col-6
+              //-     canvas#doughnut14 //VADP                
+                    
+            .col-5           
+              .row
+                .alert.border-info(style="position:absolute;animation:blink 1s infinite;width:100%;height:95%;text-align:center;") 
+                    h4.alert-heading Loading Maps...
+                #container
+                  
+            .col-4 
+              .row#merchant(style='margin:auto;width: 100%;font-size:small;')    
+              //-     .alert.alert-warning.bar-warning#biih-warn(style="position:absolute") 
+              //-       Please check (Maybank) Transaction
+              //-     canvas#doughnut7  //BIIH               
+              //-   .col-6
+              //-     .alert.alert-warning.bar-warning#euro-warn(style="position:absolute") 
+              //-       Please check (Euronet) Transaction
+              //-     canvas#doughnut8  //Euronet              
+              //- .row
+              //-   .col-6
+              //-     .alert.alert-warning.bar-warning#finnet-warn(style="position:absolute") 
+              //-       Please check (Finnet) Transaction
+              //-     canvas#doughnut9  //Finnet             
+              //-   .col-6
+              //-     canvas#doughnut10 //PLND change into SWDK because of new PLN         
+              //- .row
+              //-   .col-6
+              //-     canvas#doughnut11 //Rintis               
+              //-   .col-6
+              //-     .alert.alert-warning.bar-warning#shfx-warn(style="position:absolute") 
+              //-       Please check Transaction
+              //-     canvas#doughnut12 //SHFX--nowDIMO--nowQRIS
+              //- .row
+                .col-6
+                  .alert.alert-warning.bar-warning#tiphone-warn(style="position:absolute") 
+                    Please check (Tiphone) Transaction
+                  canvas#doughnut15 //Tiphone
+                .col-6
+                  .alert.alert-warning.bar-warning#nicepay-warn(style="position:absolute") 
+                    Please check (Nicepay) Transaction
+                  canvas#doughnut16 //Nicepay
+          //- hr
+          
+        //- .container-fluid
+        //-   .row#mcc
+      //-       .col-4
+      //-         .alert.alert-warning.bar-warning#rnts-warn(style="position:absolute") 
+      //-           h4.alert-heading Warning!
+      //-           p No Transaction
+      //-           hr
+      //-           p.mb-0 Please check (RNTS) Transaction
+      //-         canvas#bar4 // Rintis           
+      //-       .col-4
+      //-         .alert.alert-warning.bar-warning#brsm-warn(style="position:absolute") 
+      //-           h4.alert-heading Warning!
+      //-           p No Transaction
+      //-           hr
+      //-           p.mb-0 Please check (BRSM) Transaction
+      //-         canvas#bar5 // Bersama           
+      //-       .col-4
+      //-         .row
+      //-           .alert.alert-warning.bar-warning#qris-warn(style="position:absolute") 
+      //-             h4.alert-heading Warning!
+      //-             p No Transaction
+      //-             hr
+      //-             p.mb-0 Please check (QRIS) Transaction
+      //-           canvas#bar8(height='75')
+      //-         .row
+      //-           .alert.alert-warning.bar-warning#visa-warn(style="position:absolute") 
+      //-             h4.alert-heading Warning!
+      //-             p No Transaction
+      //-             hr
+      //-             p.mb-0 Please check (ARON) Transaction
+      //-           canvas#bar6(height='75') // VISA
+              
+        //- hr
+        
+    .container-fluid(style='margin-top:2rem;margin-bottom:2rem;')
+          .row#mcc(style='margin:auto;width: 100%;font-size:small;')  
+      //-       .col-6
+      //-         .row.ml-4 
+      //-           .alert.alert-warning.bar-warning#reuter-warn(style="position:absolute") 
+      //-             h4.alert-heading Warning!
+      //-             p No Transaction
+      //-             hr
+      //-             p.mb-0 Please check (Feeder Box) Transaction
+      //-           canvas#bar7(height='50')              
+      //-         .row.ml-4
+              
+        .hr
+        .progress.fixed-bottom(style='height: auto;')
+          .progress-bar.bg-warning(role='progressbar', style='width: 0%;height: 8px;', aria-valuenow='0', aria-valuemin='0', aria-valuemax='100')
+  include ../partials/scripts

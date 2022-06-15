@@ -1,0 +1,125 @@
+!!! 5
+html(lang='en')
+	head
+		meta(charset='utf-8')
+		title Mona Web . Keb Hana Bank
+		meta(name='viewport', content='width=device-width, initial-scale=1.0')
+		meta(name='description', content='')
+		meta(name='author', content='')
+		link(href='/monaweb/css/bootstrap.css', rel='stylesheet')
+		script(src='/monaweb/js/Chart.min.js')
+		script(src='/monaweb/js/jquery-3.2.1.min.js')
+		link(href='/monaweb/css/bootstrap-responsive.css', rel='stylesheet')
+		link(rel='apple-touch-icon-precomposed', sizes='144x144', href='/monaweb/ico/apple-touch-icon-144-precomposed.png')
+		link(rel='apple-touch-icon-precomposed', sizes='114x114', href='/monaweb/ico/apple-touch-icon-114-precomposed.png')
+		link(rel='apple-touch-icon-precomposed', sizes='72x72', href='/monaweb/ico/apple-touch-icon-72-precomposed.png')
+		link(rel='apple-touch-icon-precomposed', href='/monaweb/ico/apple-touch-icon-57-precomposed.png')
+		link(rel='shortcut icon', href='/monaweb/ico/favicon.png')
+		script.
+			$(document).ready(function(){
+				$('#amount').maskMoney({prefix:'US$'});
+			});
+	body
+		nav.navbar.navbar-expand-lg.navbar-light.bg-light.mt-2        
+			a.navbar-brand Mona Web        
+				button.btn.btn-outline-primary(onclick='window.open("/monaweb/monitoring", "_self")') Monitoring
+				.btn-group.ml-auto.w-100.justify-content-end(role="group",aria-label="Menu Group")
+					a.button.btn.btn-info(type="button",href='/monaweb/merchant') Card Report
+					a.button.btn.btn-info(type="button",href='/monaweb/summary_new') Summary Report
+					a.button.btn.btn-info(type="button",href='/monaweb/channel_new') Channel Report
+					a.button.btn.btn-info(type="button",href='/monaweb/billpayment_new') Bill Payment Report
+					a.button.btn.btn-info(type="button",href='/monaweb/check') Check Transaction
+		hr
+		.jumbotron
+			.container.w-50
+				- col = data.rows
+				- chn = ''
+				.row
+					.col.border.border-info
+						br
+						each col1 in col
+							<div class="row">
+							.col.font-weight-bold Channel
+							.col.font-weight-bold :
+								if col1[0] == 'ATMD'
+									chn = 'ATM Driving'
+								else if col1[0] == 'GIBI' && col1[7] == 'PBK'
+									chn = 'Personal Banking(PBK)'
+								else if col1[0] == 'GIBI' && col1[7] == 'MBK'
+									chn = 'Mobile Banking(MBK)'
+								else if col1[0] == 'GIBI' && col1[7] == 'ODS'
+									chn = '1Q Pioneer'
+								else if col1[0] == 'GIBI' && col1[7] == 'CBS'
+									chn = 'Corporate Banking(CBS)'
+								else if col1[0] == 'LOCL'
+									chn = 'EDC'
+								else if col1[0] == 'ARON'
+									chn = 'Visa'
+								else if col1[0] == 'VADP'
+									chn = 'Phone Banking'
+								else if col1[0] == 'SMSD'
+									chn = 'SMS Banking'
+								else if col1[0] == 'BRSM'
+									chn = 'ATM Bersama'
+								else if col1[0] == 'RNTS'
+									chn = 'Jaringan PRIMA'
+								else if col1[0] == 'EURO'
+									chn = 'Euronet'
+								else if col1[4] == 'FINN'
+									chn = 'Finnet'
+								else if col1[0] == 'BIIH'
+									chn = 'Maybank'
+								else if col1[0] == 'TIPH'
+									chn = 'Tiphone'
+								else if col1[0] == 'SHFX'
+									chn = 'SinarmasHF'
+								else if col1[0] == 'IONX'
+									chn = 'Nicepay'
+								else if col1[0] == 'SWDK'
+									chn = 'Bimasakti'  
+								else
+									.col.border.border-info.font-weight-bold Other
+								input(type='text', id='channel', name='channel', value='#{chn}', disabled=true) 
+							</div>
+							<div class="row">
+							.col.font-weight-bold Transaction Date
+							.col.font-weight-bold :
+								input(type='text', id='transdt', name='transdt', value='#{col1[3]}', disabled=true) 
+							</div>
+							<div class="row">
+							.col.font-weight-bold Transaction Time
+							.col.font-weight-bold :
+								input(type='text', id='transt', name='transt', value='#{col1[4]}', disabled=true) 
+							</div>
+							<div class="row">
+							.col.font-weight-bold Transaction Code
+							.col.font-weight-bold :
+								input(type='text', id='transcd', name='transcd', value='#{col1[6]}', disabled=true)
+							</div>
+							<div class="row">
+							.col.font-weight-bold Ref. No
+							.col.font-weight-bold :
+								input(type='text', id='refno', name='refno', value='#{col1[5]}', disabled=true)
+							</div>
+							<div class="row">
+							.col.font-weight-bold Response Code
+							.col.font-weight-bold :
+								input(type='text', id='respcd', name='respcd', value='#{col1[8]}', disabled=true)
+							</div>
+							<div class="row">
+							.col.font-weight-bold Currency
+							.col.font-weight-bold :
+								input(type='text', id='ccy', name='ccy', value='#{col1[1]}', disabled=true)
+							</div>
+							<div class="row">
+							.col.font-weight-bold Amount
+							.col.font-weight-bold :
+								input(type='text', id='amount', name='amount', value='#{col1[2]}', disabled=true) 
+							</div>
+							br
+		hr
+		.footer
+			.float-right
+				<img src="/monaweb/img/kebhana_logo_new.gif" class="mb-2"/> © 2017
+			
+	include ../partials/scripts
