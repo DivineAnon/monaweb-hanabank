@@ -1,30 +1,29 @@
 {
-  "name": "monaweb",
+  "name": "monaweb-operations-support",
   "version": "1.0.0",
-  "description": "Project Monaweb migrate",
-  "main": "app.js",
+  "description": "",
+  "main": "index.js",
   "scripts": {
-    "start": "node app.js"
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
     "url": "http://10.254.185.109/root/monaweb"
   },
-  "author": "Rino Alfian - Keb Hana Bank",
+  "keywords": [],
+  "author": "Andrianus Sukma Maria- Keb Hana Bank",
   "license": "ISC",
   "dependencies": {
-    "body-parser": "^1.19.0",
-    "chart.js": "^2.9.3",
+    "body-parser": "^1.20.0",
+    "chart.js": "^3.8.0",
     "errorhandler": "^1.5.1",
-    "express": "^4.17.1",
-    "jade": "0.30.0",
+    "express": "^4.18.1",
+    "jade": "^1.11.0",
     "method-override": "^3.0.0",
     "morgan": "^1.10.0",
-    "nodemon": "^2.0.4",
-    "oracledb": "^5.0.0",
-    "pm2": "^4.4.0",
-    "pug": "^3.0.0",
+    "oracledb": "^5.4.0",
+    "pug": "^3.0.2",
     "serve-favicon": "^2.5.0",
-    "stylus": "^0.54.8"
+    "stylus": "^0.58.1"
   }
 }
