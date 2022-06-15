@@ -1,4 +1,4 @@
-!!! 5
+doctype html PUBLIC
 html(lang='en')
   head
     meta(charset='utf-8')
@@ -17,10 +17,10 @@ html(lang='en')
     link(rel='apple-touch-icon-precomposed', sizes='72x72', href='/monaweb/ico/apple-touch-icon-72-precomposed.png')
     link(rel='apple-touch-icon-precomposed', href='/monaweb/ico/apple-touch-icon-57-precomposed.png')
     link(rel='shortcut icon', href='/monaweb/ico/favicon.png')
-    style(type='text/css')
-      nav.navbar{
-        height: 28px;
-      }
+    //- style(type='text/css')
+    //-   nav.navbar{
+    //-     height: 28px;
+    //-   }
     script.
       var soundID = "Thunder";       
       function loadSound () {        
@@ -1283,12 +1283,12 @@ html(lang='en')
     .container-fluid       
       .d-flex.justify-content-between.mt-2
         .container-flex.justify-content-left.p-0.m-0
-          button.btn.btn-outline-primary.btn-sm.h-80 Mona Web
+          button.btn.btn-outline-primary.btn-sm.h-80(onclick='window.open("/monaweb/", "_self")') Mona Web
           button.btn.btn-primary.btn-sm.h-80#clock 12:00:00
           button.btn.btn-secondary.btn-sm.h-80#toggle-sound Sound : On
         .container-sm
         .container-sm
-          <img src="/monaweb/img/kebhana_logo_new.gif" class="mb-2"/> © 2018
+          <img src="/monaweb/img/kebhana_logo_new.gif" class="mb-2"/> © 2022
          
       
       .container-fluid
